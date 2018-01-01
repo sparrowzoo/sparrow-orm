@@ -1,7 +1,5 @@
 package com.sparrow.orm.type;
 
-import com.sparrow.orm.Status;
-import com.sparrow.protocol.enums.Platform;
 import com.sparrow.protocol.enums.STATUS_RECORD;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;

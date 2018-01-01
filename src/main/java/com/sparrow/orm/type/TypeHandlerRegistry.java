@@ -1,6 +1,6 @@
 package com.sparrow.orm.type;
 
-import com.sparrow.protocol.enums.Platform;
+import com.sparrow.protocol.enums.PLATFORM;
 import com.sparrow.protocol.enums.STATUS_RECORD;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -86,7 +86,7 @@ public class TypeHandlerRegistry {
         register(double.class, DoubleTypeHandler.class);
         register(JdbcType.DOUBLE, DoubleTypeHandler.class);
 
-        register(Platform.class, PlatformTypeHandler.class);
+        register(PLATFORM.class, PlatformTypeHandler.class);
         register(STATUS_RECORD.class, StatusTypeHandler.class);
 
         register(String.class, StringTypeHandler.class);
