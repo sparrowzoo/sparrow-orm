@@ -63,8 +63,6 @@ public class PrepareORM<T> {
 
     private Container container = ApplicationContext.getContainer();
 
-    ClassFactoryBean<EntityManager> entityManagerFactoryBean = EntityManagerFactoryBean.getInstance();
-
     private SparrowEntityManager entityManager = null;
     /**
      * 方法访问对象
@@ -88,7 +86,10 @@ public class PrepareORM<T> {
     }
 
     public String getTableName(List<Object> tableSuffix) {
-        return this.getEntityManager().getTableName() + this.getEntityManager().getTableSuffix(tableSuffix);
+        if(tableSuffix==null){
+            return this.entityManager.getTableName();
+        }
+        return this.entityManager.getTableName() + this.entityManager.getTableSuffix(tableSuffix);
     }
 
     /**
@@ -97,14 +98,17 @@ public class PrepareORM<T> {
     public PrepareORM(Class modelClazz, CriteriaProcessor criteriaProcessor) {
         this.modelClazz = modelClazz;
         this.methodAccessor = container.getProxyBean(
-                this.modelClazz);
+            this.modelClazz);
         this.entityManager = new SparrowEntityManager(this.modelClazz);
-        this.entityManagerFactoryBean.pubObject(this.modelClazz, this.entityManager);
+        EntityManagerFactoryBean.getInstance().pubObject(this.modelClazz, this.entityManager);
         this.modelName = StringUtility.getEntityNameByClass(this.modelClazz);
         this.criteriaProcessor = criteriaProcessor;
     }
 
     public JDBCParameter insert(T model) {
+        if (model == null) {
+            throw new IllegalArgumentException("insert model can't be null");
+        }
         String insertSQL = this.entityManager.getInsert();
         boolean isIncrement = false;
         List<Parameter> parameters = new ArrayList<Parameter>();
@@ -134,7 +138,7 @@ public class PrepareORM<T> {
                             id = idGenerator.generate();
                             parameters.add(new Parameter(field, id));
                             this.methodAccessor
-                                    .set(model, field.getName(), id);
+                                .set(model, field.getName(), id);
                         }
                     }
                     break;
@@ -153,6 +157,9 @@ public class PrepareORM<T> {
     }
 
     public JDBCParameter update(T model) {
+        if (model == null) {
+            throw new IllegalArgumentException("model can't be null");
+        }
         String updateSQL = this.entityManager.getUpdate();
         List<Parameter> parameters = new ArrayList<Parameter>();
         Parameter whereParameter = null;
@@ -175,11 +182,14 @@ public class PrepareORM<T> {
     }
 
     public JDBCParameter update(UpdateCriteria criteria) {
+        if (criteria == null) {
+            throw new IllegalArgumentException("criteria can't be null");
+        }
         OperationEntity where = this.criteriaProcessor.where(criteria.getWhere());
         OperationEntity setClause = this.criteriaProcessor.setClause(criteria.getSetClausePairList());
         String update = String.format("update %1$s set %2$s where %3$s",
-                this.getTableName(criteria.getTableSuffix()), setClause.getClause(),
-                where.getClause());
+            this.getTableName(criteria.getTableSuffix()), setClause.getClause(),
+            where.getClause());
         List<Parameter> updateParameters = new ArrayList<Parameter>();
         updateParameters.addAll(setClause.getParameterList());
         updateParameters.addAll(where.getParameterList());
@@ -187,12 +197,19 @@ public class PrepareORM<T> {
     }
 
     public JDBCParameter delete(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("delete id can't be null");
+        }
         Field primaryField = this.entityManager.getPrimary();
         return new JDBCParameter(this.entityManager.getDelete(),
-                Collections.singletonList(new Parameter(primaryField, primaryField.convert(id.toString()))));
+            Collections.singletonList(new Parameter(primaryField, primaryField.convert(id.toString()))));
     }
 
     public JDBCParameter delete(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("delete by search criteria [searchCriteria]can't be null");
+        }
+
         String delete = String.format("DELETE FROM %1$s", this.getTableName(searchCriteria.getTableSuffix()));
         OperationEntity where = this.criteriaProcessor.where(searchCriteria.getWhere());
         if (!StringUtility.isNullOrEmpty(where.getClause())) {
@@ -202,7 +219,7 @@ public class PrepareORM<T> {
     }
 
     public T setEntity(
-            Map<String, Object> values) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Map<String, Object> values) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         if (values == null || values.size() == 0) {
             return null;
         }
@@ -218,7 +235,7 @@ public class PrepareORM<T> {
                 }
                 if (values.containsKey(field.getColumnName())) {
                     this.methodAccessor.set(model, field.getName(),
-                            values.get(field.getColumnName()));
+                        values.get(field.getColumnName()));
                 }
             } catch (Exception e) {
                 logger.error("set entity error", e);
@@ -236,7 +253,7 @@ public class PrepareORM<T> {
 
             for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
                 String columnName = resultSetMetaData.getColumnName(i);
-                String propertyName=this.entityManager.getProperty(columnName);
+                String propertyName = this.entityManager.getProperty(columnName);
                 Class javaType = this.entityManager.getField(propertyName).getType();
                 JdbcType jdbcType = JdbcType.forCode(resultSetMetaData.getColumnType(i));
                 TypeHandler typeHandler = typeHandlerRegistry.getTypeHandler(javaType, jdbcType);
@@ -262,24 +279,31 @@ public class PrepareORM<T> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.entityManager.getFields());
         select.append(" from "
-                + this.entityManager.getTableName() + " as " + this.modelName);
+            + this.entityManager.getTableName() + " as " + this.modelName);
         select.append(" where " + this.entityManager.getPrimary().getColumnName() + "=?");
-        return new JDBCParameter(select.toString(), Arrays.asList(new Parameter(this.entityManager.getUniqueField(uniqueKey), key)));
+        return new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(this.entityManager.getUniqueField(uniqueKey), key)));
     }
 
     public JDBCParameter getCount(Object key, String uniqueKey) {
         StringBuilder select = new StringBuilder("select count(*) from "
-                + this.entityManager.getTableName() + " as " + this.modelName);
+            + this.entityManager.getTableName() + " as " + this.modelName);
         Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
         select.append(" where "
-                + uniqueField.getColumnName() + "=?");
-        return new JDBCParameter(select.toString(), Arrays.asList(new Parameter(uniqueField, key)));
+            + uniqueField.getColumnName() + "=?");
+        return new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, key)));
     }
 
     public JDBCParameter getCount(SearchCriteria criteria) {
+        if (criteria == null) {
+            throw new IllegalArgumentException("criteria can't be null");
+        }
         OperationEntity boolOperationEntity = this.criteriaProcessor.where(criteria.getWhere());
         String field = this.criteriaProcessor.fields(criteria.getFields());
-        String whereClause = boolOperationEntity.getClause().toString();
+        if (StringUtility.isNullOrEmpty(field)) {
+            field = "*";
+        }
+        String whereClause = null;
+        whereClause = boolOperationEntity.getClause().toString();
         String tableName = null;
         if (criteria.getDistinct()) {
             field = "distinct " + field;
@@ -287,9 +311,9 @@ public class PrepareORM<T> {
         StringBuilder select = new StringBuilder();
 
         tableName = this.getTableName(criteria.getTableSuffix()) + " as "
-                + this.modelName;
+            + this.modelName;
         select.append(String.format("select count(%1$s) from %2$s",
-                field, tableName));
+            field, tableName));
         if (!StringUtility.isNullOrEmpty(whereClause)) {
             select.append(" where " + whereClause);
         }
@@ -302,8 +326,8 @@ public class PrepareORM<T> {
         }
         fieldName = this.entityManager.getField(fieldName).getColumnName();
         String select = String.format("select %1$s from %2$s", fieldName,
-                this.entityManager.getTableName() + " as "
-                        + this.modelName);
+            this.entityManager.getTableName() + " as "
+                + this.modelName);
         if (uniqueKey != null) {
             Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
             select += String.format(" where %1$s=?", uniqueField.getColumnName());
@@ -321,19 +345,19 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("update %1$s set %2$s=? where %3$s %4$s",
-                this.entityManager.getTableName(),
-                this.entityManager.getStatus().getColumnName(),
-                this.entityManager.getPrimary().getColumnName(),
-                whereClause);
+            this.entityManager.getTableName(),
+            this.entityManager.getStatus().getColumnName(),
+            this.entityManager.getPrimary().getColumnName(),
+            whereClause);
 
         Parameter[] sqlParameters;
         if (primaryKey.contains(SYMBOL.COMMA)) {
-            sqlParameters = new Parameter[]{
-                    new Parameter(this.entityManager.getStatus(), status.name())};
+            sqlParameters = new Parameter[] {
+                new Parameter(this.entityManager.getStatus(), status.name())};
         } else {
-            sqlParameters = new Parameter[]{
-                    new Parameter(this.entityManager.getStatus(), status.name()),
-                    new Parameter(this.entityManager.getPrimary(), this.entityManager.getPrimary().convert(primaryKey))};
+            sqlParameters = new Parameter[] {
+                new Parameter(this.entityManager.getStatus(), status.name()),
+                new Parameter(this.entityManager.getPrimary(), this.entityManager.getPrimary().convert(primaryKey))};
         }
         return new JDBCParameter(updateSql, Arrays.asList(sqlParameters));
     }
@@ -346,15 +370,15 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("DELETE FROM %1$s where %2$s %3$s",
-                this.entityManager.getTableName(),
-                this.entityManager.getPrimary().getColumnName(),
-                whereClause);
+            this.entityManager.getTableName(),
+            this.entityManager.getPrimary().getColumnName(),
+            whereClause);
 
         Parameter[] sqlParameters = new Parameter[0];
         if (!ids.contains(SYMBOL.COMMA)) {
-            sqlParameters = new Parameter[]{
-                    new Parameter(this.entityManager.getPrimary(),
-                            this.entityManager.getPrimary().convert(ids))
+            sqlParameters = new Parameter[] {
+                new Parameter(this.entityManager.getPrimary(),
+                    this.entityManager.getPrimary().convert(ids))
             };
         }
         return new JDBCParameter(updateSql, Arrays.asList(sqlParameters));

@@ -68,6 +68,9 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
     @Override
     public OperationEntity where(BooleanCriteria booleanCriteria) {
         OperationEntity operationEntity = new OperationEntity();
+        if(booleanCriteria==null){
+            return operationEntity;
+        }
         if (booleanCriteria.getCriteriaList() != null && booleanCriteria.getCriteriaList().size() > 0) {
 
             StringBuilder whereClause = new StringBuilder();

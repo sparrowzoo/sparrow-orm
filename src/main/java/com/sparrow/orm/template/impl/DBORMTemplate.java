@@ -115,6 +115,9 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     private JDBCParameter getSelectSql(SearchCriteria searchCriteria) {
+        if(searchCriteria==null){
+            searchCriteria=new SearchCriteria();
+        }
         StringBuilder selectSql = new StringBuilder();
         OperationEntity boolOperationEntity = this.criteriaProcessor.where(searchCriteria.getWhere());
         String whereClause = boolOperationEntity.getClause().toString();
@@ -150,6 +153,9 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     private ORMResult select(SearchCriteria searchCriteria) {
+        if(searchCriteria==null){
+            searchCriteria=new SearchCriteria();
+        }
         Long count = this.getCount(searchCriteria);
         if (count == 0) {
             return null;
