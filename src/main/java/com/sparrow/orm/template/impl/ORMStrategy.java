@@ -17,6 +17,8 @@
 
 package com.sparrow.orm.template.impl;
 
+import com.sparrow.constant.SYS_OBJECT_NAME;
+import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.enums.DIALECT;
 import com.sparrow.enums.STATUS_RECORD;
 import com.sparrow.orm.Dialect;
@@ -24,6 +26,7 @@ import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
+import com.sparrow.support.ConnectionContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ import java.util.Set;
 public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
     public ORMStrategy() {
         this(null);

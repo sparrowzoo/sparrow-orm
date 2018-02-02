@@ -18,12 +18,14 @@
 package com.sparrow.orm;
 
 import com.sparrow.constant.CONSTANT;
+import com.sparrow.constant.SYS_OBJECT_NAME;
 import com.sparrow.constant.magic.SYMBOL;
-import com.sparrow.datasource.DataSourceFactory;
+import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.datasource.DatasourceKey;
 import com.sparrow.enums.DATABASE_SPLIT_STRATEGY;
 import com.sparrow.enums.STATUS_RECORD;
-import com.sparrow.support.ContextHolder;
+import com.sparrow.support.ConnectionContextHolder;
+import com.sparrow.support.HttpContext;
 import com.sparrow.support.db.JDBCSupport;
 import com.sparrow.utility.StringUtility;
 import org.slf4j.Logger;
@@ -42,7 +44,7 @@ import java.util.regex.Matcher;
  * @author harry
  */
 public class JDBCTemplate implements JDBCSupport {
-    Logger logger = LoggerFactory.getLogger(JDBCTemplate.class);
+    private static Logger logger = LoggerFactory.getLogger(JDBCTemplate.class);
     /**
      * *********************************** 变量定义 *******************************************************************
      */
@@ -53,17 +55,17 @@ public class JDBCTemplate implements JDBCSupport {
      */
     private String schema;
     private DATABASE_SPLIT_STRATEGY dataSourceSplitStrategy;
-
-    private DataSourceFactory dataSourceFactory = DataSourceFactory.getInstance();
     /**
      * 连接支持器
      */
-    private ContextHolder connectionHolder = ContextHolder.getInstance();
+    private ConnectionContextHolder connectionHolder;
+
 
     /**
      * @return
      */
     public static JDBCSupport getInstance(String schema, DATABASE_SPLIT_STRATEGY databaseSplitStrategy) {
+
         if (databaseSplitStrategy == null) {
             databaseSplitStrategy = DATABASE_SPLIT_STRATEGY.DEFAULT;
         }
@@ -90,6 +92,7 @@ public class JDBCTemplate implements JDBCSupport {
         }
         this.schema = schema;
         this.dataSourceSplitStrategy = databaseSplitStrategy;
+        this.connectionHolder =ApplicationContext.getContainer().getBean(SYS_OBJECT_NAME.CONNECTION_CONTEXT_HOLDER);
     }
 
     /************************************* 执行基础SQL调用 参数与存储过程 ***************************************************/
@@ -170,17 +173,18 @@ public class JDBCTemplate implements JDBCSupport {
     }
 
     private String getDataSourceSuffix() {
+        HttpContext httpContext=HttpContext.getContext();
         String suffix = null;
         switch (this.dataSourceSplitStrategy) {
             case LANGUAGE:
-                suffix = (String) ContextHolder.getInstance().get(CONSTANT.REQUEST_LANGUAGE);
+                suffix = (String) httpContext.get(CONSTANT.REQUEST_LANGUAGE);
                 break;
             case USER_ID:
-                suffix = (String) ContextHolder.getInstance().get(CONSTANT.REQUEST_USER_ID);
+                suffix = (String) httpContext.get(CONSTANT.REQUEST_USER_ID);
                 break;
             case FOREIGN_KEY:
             case USER_DEFINED:
-                suffix = (String) ContextHolder.getInstance().get(CONSTANT.REQUEST_DATABASE_SUFFIX);
+                suffix = (String) httpContext.get(CONSTANT.REQUEST_DATABASE_SUFFIX);
                 break;
             default:
                 suffix = "default";
@@ -205,7 +209,7 @@ public class JDBCTemplate implements JDBCSupport {
         try {
             if (connection == null || connection.getAutoCommit()) {
                 // 新连接并与当前线程绑定
-                DataSource dataSource = dataSourceFactory.getDataSource(dataSourceKey.getKey());
+                DataSource dataSource =connectionHolder.getDataSourceFactory().getDataSource(dataSourceKey.getKey());
                 connection = dataSource.getConnection();
                 //不管是否为事务都需要绑定到线程上，以便执行完后关闭proxyConnection
                 //(ProxyConnection)connection会报错，故getConnection之后无法放回池中
@@ -223,7 +227,6 @@ public class JDBCTemplate implements JDBCSupport {
      *
      * @param jdbcParameter
      * @return
-     * @throws Exception
      */
     private PreparedStatement getPreparedStatement(JDBCParameter jdbcParameter) {
         PreparedStatement preparedStatement = null;
