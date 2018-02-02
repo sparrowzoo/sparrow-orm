@@ -18,10 +18,8 @@
 package com.sparrow.orm.template.impl;
 
 import com.sparrow.constant.CONFIG_KEY_DB;
-import com.sparrow.constant.SYS_OBJECT_NAME;
 import com.sparrow.constant.magic.DIGIT;
 import com.sparrow.core.Pair;
-import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.enums.DATABASE_SPLIT_STRATEGY;
 import com.sparrow.enums.STATUS_RECORD;
 import com.sparrow.orm.Field;
@@ -36,7 +34,6 @@ import com.sparrow.orm.query.sql.CriteriaProcessor;
 import com.sparrow.orm.query.sql.OperationEntity;
 import com.sparrow.orm.query.sql.impl.criteria.processor.SqlCriteriaProcessorImpl;
 import com.sparrow.orm.template.SparrowDaoSupport;
-import com.sparrow.support.ConnectionContextHolder;
 import com.sparrow.support.db.JDBCSupport;
 import com.sparrow.utility.StringUtility;
 import java.sql.ResultSet;
