@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author harry
  */
 public class PrepareORM<T> {
-    Logger logger = LoggerFactory.getLogger(PrepareORM.class);
+    private static Logger logger = LoggerFactory.getLogger(PrepareORM.class);
 
     private CriteriaProcessor criteriaProcessor;
     /**
