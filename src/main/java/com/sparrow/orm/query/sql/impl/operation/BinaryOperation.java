@@ -35,7 +35,10 @@ public class BinaryOperation implements RelationalOperation {
         CriteriaField criteriaField = criteria.getField();
         EntityManager entityManager = EntityManager.get(criteriaField.getAlias());
         Field field = entityManager.getField(criteriaField.getName());
-        String condition = (criteria.isAlias() ? criteria.getField().getAlias() + SYMBOL.DOT : SYMBOL.EMPTY) + field.getColumnName() + SYMBOL.BLANK + criteria.getCriteriaEntry().getKey().rendered() + " ? ";
+        if(field==null){
+            throw new IllegalArgumentException(criteriaField.getAlias()+SYMBOL.DOT+criteriaField.getName()+" not found");
+        }
+        String condition = (criteria.isAlias() ? criteriaField.getAlias() + SYMBOL.DOT : SYMBOL.EMPTY) + field.getColumnName() + SYMBOL.BLANK + criteria.getCriteriaEntry().getKey().rendered() + " ? ";
         Parameter parameter = new Parameter(field, criteria.getCriteriaEntry().getValue());
         return new RelationOperationEntity(condition, parameter);
     }

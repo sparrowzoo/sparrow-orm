@@ -229,7 +229,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public List<T> getList(SearchCriteria criteria) {
         //返回null会报错
         List<T> list;
-        if (criteria != null && criteria.getPageSize() > 0) {
+        if (criteria != null && criteria.getPageSize()!=null&&criteria.getPageSize() > 0) {
             list = new ArrayList<T>(criteria.getPageSize());
         } else {
             list = new ArrayList<T>();

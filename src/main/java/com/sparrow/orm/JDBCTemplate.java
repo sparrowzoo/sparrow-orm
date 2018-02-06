@@ -28,6 +28,7 @@ import com.sparrow.enums.STATUS_RECORD;
 import com.sparrow.support.db.JDBCSupport;
 import com.sparrow.support.web.HttpContext;
 import com.sparrow.utility.StringUtility;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +99,7 @@ public class JDBCTemplate implements JDBCSupport {
         }
         this.schema = schema;
         this.dataSourceSplitStrategy = databaseSplitStrategy;
-        this.connectionHolder =ApplicationContext.getContainer().getBean(SYS_OBJECT_NAME.CONNECTION_CONTEXT_HOLDER);
+        this.connectionHolder = ApplicationContext.getContainer().getBean(SYS_OBJECT_NAME.CONNECTION_CONTEXT_HOLDER);
     }
 
     /************************************* 执行基础SQL调用 参数与存储过程 ***************************************************/
@@ -114,7 +116,7 @@ public class JDBCTemplate implements JDBCSupport {
      * @param index
      */
     private void bindParameter(PreparedStatement preparedStatement,
-        Parameter parameter, int index) {
+                               Parameter parameter, int index) {
 
         Object value = parameter.getParameterValue();
         Class<?> fieldType = parameter.getType();
@@ -122,63 +124,83 @@ public class JDBCTemplate implements JDBCSupport {
             fieldType = value.getClass();
         }
         try {
+            if (fieldType == byte.class || fieldType == Byte.class) {
+                preparedStatement.setByte(
+                        index,
+                        StringUtility.isNullOrEmpty(value) ? 0 : (Byte) value);
+                return;
+            }
             if (fieldType == int.class || fieldType == Integer.class) {
                 preparedStatement.setInt(
-                    index,
-                    StringUtility.isNullOrEmpty(value) ? 0 : (Integer) value);
-            } else if (fieldType == long.class || fieldType == Long.class) {
+                        index,
+                        StringUtility.isNullOrEmpty(value) ? 0 : (Integer) value);
+                return;
+            }
+            if (fieldType == long.class || fieldType == Long.class) {
                 preparedStatement.setLong(
-                    index,
-                    StringUtility.isNullOrEmpty(value) ? 0L : (Long) value);
-            } else if (fieldType == String.class) {
+                        index,
+                        StringUtility.isNullOrEmpty(value) ? 0L : (Long) value);
+                return;
+            }
+            if (fieldType == String.class) {
                 preparedStatement.setString(index, StringUtility
-                    .isNullOrEmpty(value) ? "" : String.valueOf(value));
-            } else if (fieldType == Date.class) {
+                        .isNullOrEmpty(value) ? "" : String.valueOf(value));
+                return;
+            }
+            if (fieldType == Date.class) {
                 preparedStatement
-                    .setDate(
-                        index, (Date) value);
-            } else if (fieldType == Timestamp.class) {
+                        .setDate(
+                                index, (Date) value);
+                return;
+            }
+            if (fieldType == Timestamp.class) {
                 preparedStatement
-                    .setTimestamp(
-                        index, (Timestamp) value);
-            } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+                        .setTimestamp(
+                                index, (Timestamp) value);
+                return;
+            }
+            if (fieldType == boolean.class || fieldType == Boolean.class) {
                 boolean b = false;
                 if (!StringUtility.isNullOrEmpty(value)) {
                     if (String.valueOf(STATUS_RECORD.ENABLE
-                        .ordinal()).equals(value) || Boolean.TRUE.toString().equalsIgnoreCase(value.toString())) {
+                            .ordinal()).equals(value) || Boolean.TRUE.toString().equalsIgnoreCase(value.toString())) {
                         b = true;
                     }
                 }
                 preparedStatement.setBoolean(
-                    index, b);
-            } else if (fieldType == double.class || fieldType == Double.class) {
+                        index, b);
+                return;
+            }
+            if (fieldType == double.class || fieldType == Double.class) {
                 preparedStatement.setDouble(
-                    index,
-                    StringUtility.isNullOrEmpty(value) ? 0.0 : (Double) value);
-            } else if (fieldType == BigDecimal.class) {
+                        index,
+                        StringUtility.isNullOrEmpty(value) ? 0.0 : (Double) value);
+                return;
+            }
+            if (fieldType == BigDecimal.class) {
                 BigDecimal bigDecimal = (BigDecimal) value;
                 if (bigDecimal == null) {
                     bigDecimal = new BigDecimal(0);
                 }
                 bigDecimal = bigDecimal.setScale(parameter.getScale(), BigDecimal.ROUND_HALF_UP);
                 preparedStatement.setBigDecimal(
-                    index, bigDecimal);
-            } else {
-                preparedStatement.setObject(index, null);
-                logger.debug("JDBCTemplate setSQLParameter error sqlType not exist"
-                    + fieldType);
+                        index, bigDecimal);
+                return;
             }
+            preparedStatement.setObject(index, null);
+            logger.debug("JDBCTemplate setSQLParameter error sqlType not exist"
+                    + fieldType);
         } catch (Exception e) {
             logger.error(
-                "Executor JDBCTemplate error attribute:"
-                    + parameter.getName() + " value:" + value
-                    + " type:" + fieldType, e);
+                    "Executor JDBCTemplate error attribute:"
+                            + parameter.getName() + " value:" + value
+                            + " type:" + fieldType, e);
             throw new RuntimeException(e);
         }
     }
 
     private String getDataSourceSuffix() {
-        HttpContext httpContext=HttpContext.getContext();
+        HttpContext httpContext = HttpContext.getContext();
         String suffix = null;
         switch (this.dataSourceSplitStrategy) {
             case LANGUAGE:
@@ -214,12 +236,12 @@ public class JDBCTemplate implements JDBCSupport {
         try {
             if (connection == null || connection.getAutoCommit()) {
                 // 新连接并与当前线程绑定
-                DataSource dataSource =connectionHolder.getDataSourceFactory().getDataSource(dataSourceKey.getKey());
+                DataSource dataSource = connectionHolder.getDataSourceFactory().getDataSource(dataSourceKey.getKey());
                 connection = dataSource.getConnection();
                 //不管是否为事务都需要绑定到线程上，以便执行完后关闭proxyConnection
                 //(ProxyConnection)connection会报错，故getConnection之后无法放回池中
                 this.connectionHolder
-                    .bindConnection(connection);
+                        .bindConnection(connection);
             }
         } catch (SQLException e) {
             logger.error("get connection error", e);
@@ -241,22 +263,22 @@ public class JDBCTemplate implements JDBCSupport {
             connection.setReadOnly(jdbcParameter.isReadOnly());
             if (jdbcParameter.isAutoIncrement()) {
                 preparedStatement = connection.prepareStatement(jdbcParameter.getCommand(),
-                    Statement.RETURN_GENERATED_KEYS);
+                        Statement.RETURN_GENERATED_KEYS);
             } else {
                 // 存储过程
                 if (jdbcParameter.getCommand().trim().toLowerCase().startsWith("call")) {
                     if (jdbcParameter.isReadOnly()) {
                         preparedStatement = connection.prepareCall(jdbcParameter.getCommand(),
-                            ResultSet.TYPE_SCROLL_INSENSITIVE,
-                            ResultSet.CONCUR_READ_ONLY);
+                                ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
                     } else {
                         preparedStatement = connection.prepareCall(jdbcParameter.getCommand());
                     }
                 } else {
                     if (jdbcParameter.isReadOnly()) {
                         preparedStatement = connection.prepareStatement(jdbcParameter.getCommand(),
-                            ResultSet.TYPE_SCROLL_INSENSITIVE,
-                            ResultSet.CONCUR_READ_ONLY);
+                                ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
                     } else {
                         preparedStatement = connection.prepareStatement(jdbcParameter.getCommand());
                     }
@@ -292,7 +314,7 @@ public class JDBCTemplate implements JDBCSupport {
                     parameterValue = SYMBOL.EMPTY;
                 }
                 commandString = commandString.replaceFirst("\\?",
-                    Matcher.quoteReplacement(parameterValue.toString()));
+                        Matcher.quoteReplacement(parameterValue.toString()));
             }
             logger.debug("SQL:" + commandString);
         }
@@ -303,7 +325,6 @@ public class JDBCTemplate implements JDBCSupport {
      * 执行多条更新语句
      *
      * @param commandString
-     * @throws Exception
      */
     @Override
     public void executeUpdate(String[] commandString) {
@@ -334,7 +355,6 @@ public class JDBCTemplate implements JDBCSupport {
      * 执行一条非参数化的更新语句.
      *
      * @param commandString
-     * @throws Exception
      */
     @Override
     public int executeUpdate(String commandString) {
@@ -360,23 +380,22 @@ public class JDBCTemplate implements JDBCSupport {
      *
      * @param jdbcParameter
      * @return
-     * @throws Exception
      */
     @Override
     public int executeUpdate(JDBCParameter jdbcParameter) {
         PreparedStatement preparedStatement = this.getPreparedStatement(jdbcParameter);
-        if (preparedStatement != null) {
-            try {
-                try {
-                    return preparedStatement.executeUpdate();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            } finally {
-                this.release(preparedStatement);
-            }
+        if (preparedStatement == null) {
+            return 0;
         }
-        return 0;
+        try {
+            try {
+                return preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } finally {
+            this.release(preparedStatement);
+        }
     }
 
     /**
@@ -384,12 +403,14 @@ public class JDBCTemplate implements JDBCSupport {
      *
      * @param jdbcParameter
      * @return
-     * @throws Exception
      */
     @Override
     public Long executeAutoIncrementInsert(JDBCParameter jdbcParameter) {
         Long generatedKey = 0L;
         PreparedStatement preparedStatement = this.getPreparedStatement(jdbcParameter);
+        if (preparedStatement == null) {
+            return 0L;
+        }
         try {
             preparedStatement.executeUpdate();
             ResultSet result = preparedStatement.getGeneratedKeys();
@@ -421,12 +442,15 @@ public class JDBCTemplate implements JDBCSupport {
             if (jdbcParameter.getParameters() == null || jdbcParameter.getParameters().size() == 0) {
                 connection = this.getConnection();
                 statement = connection.createStatement(
-                    ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY);
+                        ResultSet.TYPE_SCROLL_SENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
                 logger.debug("SQL:" + jdbcParameter.getCommand());
                 resultSet = statement.executeQuery(jdbcParameter.getCommand());
             } else {
                 statement = this.getPreparedStatement(jdbcParameter);
+                if (statement == null) {
+                    return null;
+                }
                 resultSet = ((PreparedStatement) statement).executeQuery();
             }
             if (resultSet == null) {
@@ -452,27 +476,25 @@ public class JDBCTemplate implements JDBCSupport {
      *
      * @param jdbcParameter
      * @return
-     * @throws Exception
      */
     @Override
     public <P> P executeScalar(JDBCParameter jdbcParameter) {
         Object result = null;
         ResultSet rs = this.executeQuery(jdbcParameter);
-        if (rs != null) {
-            try {
-                if (rs.next()) {
-                    result = rs.getObject(1);
-                }
-            } catch (Exception e) {
-                logger.error(jdbcParameter.getCommand(), e);
-                result = null;
-            } finally {
-                this.release(rs);
-            }
-            return (P) result;
-        } else {
+        if (rs == null) {
             return null;
         }
+        try {
+            if (rs.next()) {
+                result = rs.getObject(1);
+            }
+        } catch (Exception e) {
+            logger.error(jdbcParameter.getCommand(), e);
+            result = null;
+        } finally {
+            this.release(rs);
+        }
+        return (P) result;
     }
 
     @Override
@@ -483,13 +505,15 @@ public class JDBCTemplate implements JDBCSupport {
     @Override
     public void release(Statement statement) {
         try {
-            if (statement != null && statement.getConnection() != null) {
-                if (statement.getConnection().getAutoCommit()) {
-                    this.connectionHolder
-                        .unbindConnection(statement.getConnection());
-                    statement.close();
-                }
+            if (statement == null || statement.getConnection() == null) {
+                return;
             }
+            if (!statement.getConnection().getAutoCommit()) {
+                return;
+            }
+            this.connectionHolder
+                    .unbindConnection(statement.getConnection());
+            statement.close();
         } catch (SQLException e) {
             logger.error("release statement", e);
             throw new RuntimeException(e);
@@ -498,14 +522,15 @@ public class JDBCTemplate implements JDBCSupport {
 
     @Override
     public void release(ResultSet rs) {
-        if (rs != null) {
-            //如果是事务中的查询也不可关闭链接
-            try {
-                this.release(rs.getStatement());
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        if (rs == null) {
+            return;
+        }
+        //如果是事务中的查询也不可关闭链接
+        try {
+            this.release(rs.getStatement());
+            rs.close();
+        } catch (SQLException e) {
+            logger.error("release error", e);
         }
     }
 }
