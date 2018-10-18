@@ -21,32 +21,24 @@ import com.sparrow.constant.CONFIG_KEY_DB;
 import com.sparrow.constant.magic.DIGIT;
 import com.sparrow.core.Pair;
 import com.sparrow.enums.DATABASE_SPLIT_STRATEGY;
-import com.sparrow.enums.STATUS_RECORD;
-import com.sparrow.orm.Field;
-import com.sparrow.orm.JDBCParameter;
-import com.sparrow.orm.JDBCTemplate;
-import com.sparrow.orm.Parameter;
-import com.sparrow.orm.PrepareORM;
-import com.sparrow.orm.query.AGGREGATE;
+import com.sparrow.orm.*;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.query.sql.CriteriaProcessor;
 import com.sparrow.orm.query.sql.OperationEntity;
 import com.sparrow.orm.query.sql.impl.criteria.processor.SqlCriteriaProcessorImpl;
 import com.sparrow.orm.template.SparrowDaoSupport;
+import com.sparrow.support.db.AggregateCriteria;
 import com.sparrow.support.db.JDBCSupport;
+import com.sparrow.support.db.StatusCriteria;
+import com.sparrow.support.db.UniqueKeyCriteria;
 import com.sparrow.utility.StringUtility;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * @author harry
@@ -121,25 +113,25 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         return this.jdbcSupport.executeUpdate(parameter);
     }
 
-    private JDBCParameter getSelectSql(AGGREGATE aggregate, SearchCriteria searchCriteria) {
+    private JDBCParameter getSelectSql(SearchCriteria searchCriteria) {
         StringBuilder selectSql = new StringBuilder();
         OperationEntity boolOperationEntity = this.criteriaProcessor.where(searchCriteria.getWhere());
         String whereClause = boolOperationEntity.getClause().toString();
         String orderClause = this.criteriaProcessor.order(searchCriteria.getOrderCriteriaList());
         selectSql.append("select ");
 
-        if (aggregate == null) {
+        if (searchCriteria.getAggregate() == null) {
             String fields = this.criteriaProcessor.fields(searchCriteria.getFields());
             if (searchCriteria.getDistinct()) {
                 selectSql.append(" distinct ");
             }
             selectSql.append(fields);
         } else {
-            String columns = this.criteriaProcessor.aggregate(aggregate, searchCriteria.getFields());
+            String columns = this.criteriaProcessor.aggregate(searchCriteria.getAggregate(), searchCriteria.getFields());
             selectSql.append(columns);
         }
         selectSql.append(" from " + this.prepareORM.getTableName(searchCriteria.getTableSuffix())
-            + " as " + StringUtility.getEntityNameByClass(this.modelClazz));
+                + " as " + StringUtility.getEntityNameByClass(this.modelClazz));
         if (!StringUtility.isNullOrEmpty(whereClause)) {
             selectSql.append(" where " + whereClause);
         }
@@ -149,7 +141,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         }
 
         if (!StringUtility.isNullOrEmpty(searchCriteria.getPageSize())
-            && searchCriteria.getPageSize() != DIGIT.ALL) {
+                && searchCriteria.getPageSize() != DIGIT.ALL) {
             selectSql.append(searchCriteria.getLimitClause());
         }
         logger.info(selectSql.toString());
@@ -161,26 +153,26 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         if (count == 0) {
             return null;
         }
-        JDBCParameter jdbcParameter = this.getSelectSql(null, searchCriteria);
+        JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
         ResultSet rs = this.jdbcSupport.executeQuery(jdbcParameter);
         return new ORMResult(rs, count);
     }
 
     @Override
-    public T getEntity(Object id) {
-        return this.getEntity(id, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE);
+    public T getEntity(I id) {
+        return this.getEntityByUnique(UniqueKeyCriteria.createUniqueCriteria(id, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
     }
 
     @Override
-    public T getEntity(Object key, String uniqueKey) {
+    public T getEntityByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.prepareORM.getEntityManager().getFields());
         select.append(" from "
-            + this.prepareORM.getEntityManager().getTableName());
+                + this.prepareORM.getEntityManager().getTableName());
         select.append(" " + this.modelName);
-        Field uniqueField = this.prepareORM.getEntityManager().getUniqueField(uniqueKey);
+        Field uniqueField = this.prepareORM.getEntityManager().getUniqueField(uniqueKeyCriteria.getUniqueFieldName());
         select.append(" where " + uniqueField.getColumnName() + "=?");
-        JDBCParameter jdbcParameter = new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, uniqueField.convert(key.toString()))));
+        JDBCParameter jdbcParameter = new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, uniqueField.convert(uniqueKeyCriteria.getKey().toString()))));
         ResultSet rs = this.jdbcSupport.executeQuery(jdbcParameter);
 
         if (rs == null) {
@@ -229,7 +221,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public List<T> getList(SearchCriteria criteria) {
         //返回null会报错
         List<T> list;
-        if (criteria != null && criteria.getPageSize()!=null&&criteria.getPageSize() > 0) {
+        if (criteria != null && criteria.getPageSize() != null && criteria.getPageSize() > 0) {
             list = new ArrayList<T>(criteria.getPageSize());
         } else {
             list = new ArrayList<T>();
@@ -288,7 +280,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public <P> P scalar(SearchCriteria criteria) {
-        return (P) this.jdbcSupport.executeScalar(this.getSelectSql(null, criteria));
+        return (P) this.jdbcSupport.executeScalar(this.getSelectSql( criteria));
     }
 
     @Override
@@ -325,8 +317,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public Long getCount(Object key, String uniqueKey) {
-        JDBCParameter jdbcParameter = this.prepareORM.getCount(key, uniqueKey);
+    public Long getCountByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
+        JDBCParameter jdbcParameter = this.prepareORM.getCount(uniqueKeyCriteria.getKey(), uniqueKeyCriteria.getResultFiled());
         Object count = this.jdbcSupport.executeScalar(jdbcParameter);
         if (count == null) {
             return 0L;
@@ -337,7 +329,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public Long getCount(Object key) {
-        return this.getCount(key, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE);
+        return this.getCount(UniqueKeyCriteria.createUniqueCriteria(key, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
     }
 
     @Override
@@ -352,8 +344,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public <X> X getAggregate(AGGREGATE aggregate, SearchCriteria searchCriteria) {
-        JDBCParameter jdbcParameter = this.getSelectSql(aggregate, searchCriteria);
+    public <X> X getAggregateByCriteria(SearchCriteria searchCriteria) {
+        JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
@@ -363,21 +355,17 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public <X> X getAggregate(String fieldName, AGGREGATE aggregate) {
+    public <X> X getAggregate(AggregateCriteria aggregateCriteria) {
         SearchCriteria searchCriteria = new SearchCriteria();
-        searchCriteria.setFields(fieldName);
-        return this.getAggregate(aggregate, searchCriteria);
+        searchCriteria.setFields(aggregateCriteria.getField());
+        searchCriteria.setAggregate(aggregateCriteria.getAggregate());
+        return this.getAggregateByCriteria(searchCriteria);
     }
 
-    @Override
-    public <X> X getFieldValue(String fieldName, Object key) {
-        return this.getFieldValue(fieldName, key,
-            CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE);
-    }
 
     @Override
-    public <X> X getFieldValue(String fieldName, Object key, String uniqueKey) {
-        JDBCParameter jdbcParameter = this.prepareORM.getFieldValue(fieldName, key, uniqueKey);
+    public <X> X getFieldValueByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
+        JDBCParameter jdbcParameter = this.prepareORM.getFieldValue(uniqueKeyCriteria.getResultFiled(), uniqueKeyCriteria.getKey(), uniqueKeyCriteria.getUniqueFieldName());
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
@@ -388,7 +376,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public <X> X getFieldValue(SearchCriteria searchCriteria) {
-        JDBCParameter jdbcParameter = this.getSelectSql(null, searchCriteria);
+        JDBCParameter jdbcParameter = this.getSelectSql( searchCriteria);
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
@@ -398,8 +386,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public int changeStatus(String primaryKey, STATUS_RECORD status) {
-        JDBCParameter jdbcParameter = this.prepareORM.changeStatus(primaryKey, status);
+    public int changeStatus(StatusCriteria statusCriteria) {
+        JDBCParameter jdbcParameter = this.prepareORM.changeStatus(statusCriteria.getIds(), statusCriteria.getStatus());
         return this.jdbcSupport.executeUpdate(jdbcParameter);
     }
 

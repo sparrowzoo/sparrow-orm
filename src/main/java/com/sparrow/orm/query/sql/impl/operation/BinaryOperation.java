@@ -18,9 +18,8 @@
 package com.sparrow.orm.query.sql.impl.operation;
 
 import com.sparrow.constant.magic.SYMBOL;
-import com.sparrow.orm.EntityManager;
-import com.sparrow.orm.Field;
-import com.sparrow.orm.Parameter;
+import com.sparrow.container.ClassFactoryBean;
+import com.sparrow.orm.*;
 import com.sparrow.orm.query.Criteria;
 import com.sparrow.orm.query.CriteriaField;
 import com.sparrow.orm.query.sql.RelationOperationEntity;
@@ -30,10 +29,12 @@ import com.sparrow.orm.query.sql.RelationalOperation;
  * @author by harry
  */
 public class BinaryOperation implements RelationalOperation {
+    private ClassFactoryBean<EntityManager> entityManagerFactoryBean=EntityManagerFactoryBean.getInstance();
+
     @Override
     public RelationOperationEntity operation(Criteria criteria) {
         CriteriaField criteriaField = criteria.getField();
-        EntityManager entityManager = EntityManager.get(criteriaField.getAlias());
+        EntityManager entityManager = entityManagerFactoryBean.getObject(criteriaField.getAlias());
         Field field = entityManager.getField(criteriaField.getName());
         if(field==null){
             throw new IllegalArgumentException(criteriaField.getAlias()+SYMBOL.DOT+criteriaField.getName()+" not found");

@@ -66,5 +66,5 @@ public interface SparrowDaoSupport<T, I> extends DaoSupport<T, I> {
      */
     int update(UpdateCriteria criteria);
 
-    <X> X getAggregate(AGGREGATE aggregate, SearchCriteria searchCriteria);
+    <X> X getAggregateByCriteria(SearchCriteria searchCriteria);
 }

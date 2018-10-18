@@ -18,10 +18,9 @@
 package com.sparrow.orm.query.sql.impl.criteria.processor;
 
 import com.sparrow.constant.magic.SYMBOL;
+import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.enums.ComparisonOperator;
-import com.sparrow.orm.EntityManager;
-import com.sparrow.orm.Field;
-import com.sparrow.orm.Parameter;
+import com.sparrow.orm.*;
 import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.BooleanCriteria;
 import com.sparrow.orm.query.Criteria;
@@ -42,6 +41,7 @@ import java.util.List;
  * @author harry
  */
 public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
+    private ClassFactoryBean<EntityManager> entityManagerFactoryBean=EntityManagerFactoryBean.getInstance();
 
     @Override
     public String fields(String fields) {
@@ -56,14 +56,14 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
                     fieldBuilder.append(SYMBOL.COMMA);
                 }
                 CriteriaField criteriaField = new SimpleCriteriaField(field);
-                String column = EntityManager.get(criteriaField.getAlias()).getColumnName(criteriaField.getName());
+                String column = entityManagerFactoryBean.getObject(criteriaField.getAlias()).getColumnName(criteriaField.getName());
                 fieldBuilder.append(column);
             }
             return fieldBuilder.toString();
         }
 
         CriteriaField criteriaField = new SimpleCriteriaField(fields);
-        return EntityManager.get(criteriaField.getAlias()).getColumnName(criteriaField.getName());
+        return entityManagerFactoryBean.getObject(criteriaField.getAlias()).getColumnName(criteriaField.getName());
     }
 
     @Override
@@ -151,7 +151,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
                 sb.append(",");
             }
 
-            String column = EntityManager.get(orderCriteria.getField().getAlias()).getColumnName(orderCriteria.getField().getName());
+            String column = entityManagerFactoryBean.getObject(orderCriteria.getField().getAlias()).getColumnName(orderCriteria.getField().getName());
             sb.append(column + SYMBOL.BLANK + orderCriteria.getOrder().name());
         }
         return sb.toString();
@@ -165,7 +165,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
             if (clause.length() > 0) {
                 clause.append(",");
             }
-            Field field = EntityManager.get(setClausePair.getField().getAlias()).getField(setClausePair.getField().getName());
+            Field field = entityManagerFactoryBean.getObject(setClausePair.getField().getAlias()).getField(setClausePair.getField().getName());
             String column = field.getColumnName();
 
             clause.append(column + SYMBOL.EQUAL);

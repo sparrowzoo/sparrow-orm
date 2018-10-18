@@ -24,6 +24,9 @@ import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
+import com.sparrow.support.db.AggregateCriteria;
+import com.sparrow.support.db.StatusCriteria;
+import com.sparrow.support.db.UniqueKeyCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +52,7 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
         DIALECT dialect = Dialect.getInstance(schema).getDialect();
         Class clazz = null;
         Type type = getClass()
-            .getGenericSuperclass();
+                .getGenericSuperclass();
         if (type instanceof ParameterizedType) {
             clazz = (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
         }
@@ -124,8 +127,8 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public int changeStatus(String ids, STATUS_RECORD status) {
-        return this.ormDaoSupport.changeStatus(ids, status);
+    public int changeStatus(StatusCriteria statusCriteria) {
+        return this.ormDaoSupport.changeStatus(statusCriteria);
     }
 
     @Override
@@ -144,8 +147,8 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public T getEntity(Object key, String uniqueKey) {
-        return this.ormDaoSupport.getEntity(key, uniqueKey);
+    public T getEntityByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
+        return this.ormDaoSupport.getEntityByUnique(uniqueKeyCriteria);
     }
 
     @Override
@@ -154,8 +157,8 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public Long getCount(Object key, String uniqueKey) {
-        return this.ormDaoSupport.getCount(key, uniqueKey);
+    public Long getCountByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
+        return this.ormDaoSupport.getCountByUnique(uniqueKeyCriteria);
     }
 
     @Override
@@ -164,22 +167,17 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public <X> X getAggregate(AGGREGATE aggregate, SearchCriteria searchCriteria) {
-        return this.ormDaoSupport.getAggregate(aggregate, searchCriteria);
+    public <X> X getAggregateByCriteria(SearchCriteria searchCriteria) {
+        return this.ormDaoSupport.getAggregateByCriteria(searchCriteria);
     }
 
     @Override
-    public <X> X getFieldValue(String fieldName, Object key) {
-        return this.ormDaoSupport.getFieldValue(fieldName, key);
+    public <X> X getFieldValueByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
+        return this.ormDaoSupport.getFieldValueByUnique(uniqueKeyCriteria);
     }
 
     @Override
-    public <X> X getFieldValue(String fieldName, Object key, String uniqueKey) {
-        return this.ormDaoSupport.getFieldValue(fieldName, key, uniqueKey);
-    }
-
-    @Override
-    public <X> X getAggregate(String fieldName, AGGREGATE aggregate) {
-        return this.ormDaoSupport.getAggregate(fieldName, aggregate);
+    public <X> X getAggregate(AggregateCriteria aggregateCriteria) {
+        return this.ormDaoSupport.getAggregate(aggregateCriteria);
     }
 }
