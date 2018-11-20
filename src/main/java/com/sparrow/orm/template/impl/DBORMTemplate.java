@@ -32,6 +32,7 @@ import com.sparrow.support.db.AggregateCriteria;
 import com.sparrow.support.db.JDBCSupport;
 import com.sparrow.support.db.StatusCriteria;
 import com.sparrow.support.db.UniqueKeyCriteria;
+import com.sparrow.support.protocol.pager.PagerSearch;
 import com.sparrow.utility.StringUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,12 +281,18 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public <P> P scalar(SearchCriteria criteria) {
-        return (P) this.jdbcSupport.executeScalar(this.getSelectSql( criteria));
+        return (P) this.jdbcSupport.executeScalar(this.getSelectSql(criteria));
     }
 
     @Override
     public List<T> getList() {
         return this.getList(null);
+    }
+
+    @Override
+    public List<T> getList(PagerSearch query) {
+        SearchCriteria criteria = new SearchCriteria(query);
+        return this.getList(criteria);
     }
 
     @Override
@@ -376,7 +383,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public <X> X getFieldValue(SearchCriteria searchCriteria) {
-        JDBCParameter jdbcParameter = this.getSelectSql( searchCriteria);
+        JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
