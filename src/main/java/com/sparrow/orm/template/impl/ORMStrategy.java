@@ -18,9 +18,7 @@
 package com.sparrow.orm.template.impl;
 
 import com.sparrow.enums.DIALECT;
-import com.sparrow.enums.STATUS_RECORD;
 import com.sparrow.orm.Dialect;
-import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
