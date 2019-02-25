@@ -17,7 +17,6 @@
 
 package com.sparrow.orm.template;
 
-import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.support.db.DaoSupport;
