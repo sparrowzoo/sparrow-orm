@@ -21,7 +21,7 @@ import com.sparrow.cg.MethodAccessor;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.container.Container;
 import com.sparrow.core.spi.ApplicationContext;
-import com.sparrow.support.Entity;
+import com.sparrow.protocol.Entity;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;

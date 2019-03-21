@@ -22,10 +22,10 @@ import com.sparrow.orm.Dialect;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
+import com.sparrow.protocol.pager.PagerQuery;
 import com.sparrow.support.db.AggregateCriteria;
 import com.sparrow.support.db.StatusCriteria;
 import com.sparrow.support.db.UniqueKeyCriteria;
-import com.sparrow.support.protocol.pager.PagerSearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,7 +156,7 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public List<T> getList(PagerSearch query) {
+    public List<T> getList(PagerQuery query) {
         return this.ormDaoSupport.getList(query);
     }
 
