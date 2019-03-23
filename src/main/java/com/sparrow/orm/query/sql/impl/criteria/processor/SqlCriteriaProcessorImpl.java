@@ -20,18 +20,17 @@ package com.sparrow.orm.query.sql.impl.criteria.processor;
 import com.sparrow.constant.magic.SYMBOL;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.enums.ComparisonOperator;
-import com.sparrow.orm.*;
-import com.sparrow.orm.query.AGGREGATE;
-import com.sparrow.orm.query.BooleanCriteria;
-import com.sparrow.orm.query.Criteria;
-import com.sparrow.orm.query.CriteriaField;
-import com.sparrow.orm.query.OrderCriteria;
-import com.sparrow.orm.query.UpdateSetClausePair;
+import com.sparrow.orm.EntityManager;
+import com.sparrow.orm.EntityManagerFactoryBean;
+import com.sparrow.orm.Field;
+import com.sparrow.orm.Parameter;
+import com.sparrow.orm.query.*;
 import com.sparrow.orm.query.impl.SimpleCriteriaField;
 import com.sparrow.orm.query.sql.CriteriaProcessor;
 import com.sparrow.orm.query.sql.OperationEntity;
 import com.sparrow.orm.query.sql.RelationOperationEntity;
 import com.sparrow.orm.query.sql.impl.operation.*;
+import com.sparrow.protocol.enums.AGGREGATE;
 import com.sparrow.utility.StringUtility;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ import java.util.List;
  * @author harry
  */
 public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
-    private ClassFactoryBean<EntityManager> entityManagerFactoryBean=EntityManagerFactoryBean.getInstance();
+    private ClassFactoryBean<EntityManager> entityManagerFactoryBean = EntityManagerFactoryBean.getInstance();
 
     @Override
     public String fields(String fields) {

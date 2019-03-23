@@ -17,10 +17,11 @@
 
 package com.sparrow.orm.query.sql;
 
-import com.sparrow.orm.query.AGGREGATE;
 import com.sparrow.orm.query.BooleanCriteria;
 import com.sparrow.orm.query.OrderCriteria;
 import com.sparrow.orm.query.UpdateSetClausePair;
+import com.sparrow.protocol.enums.AGGREGATE;
+
 import java.util.List;
 
 /**

@@ -24,7 +24,6 @@ import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.container.Container;
 import com.sparrow.core.StrategyFactory;
 import com.sparrow.core.spi.ApplicationContext;
-import com.sparrow.enums.STATUS_RECORD;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.query.sql.OperationEntity;
@@ -32,6 +31,7 @@ import com.sparrow.orm.query.sql.CriteriaProcessor;
 import com.sparrow.orm.type.JdbcType;
 import com.sparrow.orm.type.TypeHandler;
 import com.sparrow.orm.type.TypeHandlerRegistry;
+import com.sparrow.protocol.enums.STATUS_RECORD;
 import com.sparrow.utility.StringUtility;
 
 import java.lang.reflect.InvocationTargetException;

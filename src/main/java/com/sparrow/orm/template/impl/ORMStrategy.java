@@ -22,10 +22,10 @@ import com.sparrow.orm.Dialect;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
+import com.sparrow.protocol.db.AggregateCriteria;
+import com.sparrow.protocol.db.StatusCriteria;
+import com.sparrow.protocol.db.UniqueKeyCriteria;
 import com.sparrow.protocol.pager.PagerQuery;
-import com.sparrow.support.db.AggregateCriteria;
-import com.sparrow.support.db.StatusCriteria;
-import com.sparrow.support.db.UniqueKeyCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
