@@ -235,15 +235,16 @@ public class PrepareORM<T> {
             TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.getInstance();
 
             for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
-                String fieldName = resultSetMetaData.getColumnName(i);
-                Class javaType = this.entityManager.getFieldMap().get(fieldName).getType();
+                String columnName = resultSetMetaData.getColumnName(i);
+                String propertyName=this.entityManager.getProperty(columnName);
+                Class javaType = this.entityManager.getField(propertyName).getType();
                 JdbcType jdbcType = JdbcType.forCode(resultSetMetaData.getColumnType(i));
                 TypeHandler typeHandler = typeHandlerRegistry.getTypeHandler(javaType, jdbcType);
                 Object fieldValue = typeHandler.getResult(rs, i);
                 try {
-                    this.getMethodAccessor().set(model, this.getEntityManager().getProperty(fieldName), fieldValue);
+                    this.getMethodAccessor().set(model, propertyName, fieldValue);
                 } catch (Exception e) {
-                    logger.error(this.modelClazz.getSimpleName() + SYMBOL.VERTICAL_LINE + fieldName, e);
+                    logger.error(this.modelClazz.getSimpleName() + SYMBOL.VERTICAL_LINE + columnName, e);
                 }
             }
             return model;

@@ -1,5 +1,7 @@
 package com.sparrow.orm.type;
 
+import com.sparrow.protocol.enums.Platform;
+import com.sparrow.protocol.enums.STATUS_RECORD;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
@@ -7,11 +9,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TypeHandlerRegistry {
+    /**
+     * jdbc type map jdbc.type.name-->type.handler
+     */
     private Map<String, TypeHandler> jdbcTypeHandlerMap = new HashMap<>();
+    /**
+     * java type java.type.name-->jdbc.type.name-->handler
+     */
     private Map<String, Map<String, TypeHandler>> javaTypeHandlerMap = new HashMap<>();
+    /**
+     * all type handler map type.name-->handler
+     */
     private Map<Class, TypeHandler> allTypeHandler = new HashMap<>();
 
-    private void register(TypeHandler typeHandler) {
+    public void register(TypeHandler typeHandler) {
         this.allTypeHandler.put(typeHandler.getClass(), typeHandler);
     }
 
@@ -36,16 +47,19 @@ public class TypeHandlerRegistry {
         this.register(new DateTimeTypeHandler());
         this.register(new SqlDateTypeHandler());
         this.register(new SqlTimestampTypeHandler());
-        this.register(new SqlTimestampTypeHandler());
         this.register(new ShortTypeHandler());
         this.register(new BigIntegerTypeHandler());
         this.register(new BigDecimalTypeHandler());
-
+        this.register(new ArrayTypeHandler());
+        this.register(new BlobTypeHandler());
+        this.register(new BooleanTypeHandler());
+        this.register(new CharacterTypeHandler());
+        this.register(new StatusTypeHandler());
+        this.register(new PlatformTypeHandler());
 
         this.register(Long.class, LongTypeHandler.class);
         this.register(long.class, LongTypeHandler.class);
         this.register(JdbcType.BIGINT, LongTypeHandler.class);
-
 
         this.register(Integer.class, IntegerTypeHandler.class);
         this.register(int.class, IntegerTypeHandler.class);
@@ -55,17 +69,14 @@ public class TypeHandlerRegistry {
         register(byte.class, ByteTypeHandler.class);
         register(JdbcType.TINYINT, ByteTypeHandler.class);
 
-
         register(Boolean.class, BooleanTypeHandler.class);
         register(boolean.class, BooleanTypeHandler.class);
         register(JdbcType.BOOLEAN, BooleanTypeHandler.class);
         register(JdbcType.BIT, BooleanTypeHandler.class);
 
-
         register(Short.class, ShortTypeHandler.class);
         register(short.class, ShortTypeHandler.class);
         register(JdbcType.SMALLINT, ShortTypeHandler.class);
-
 
         register(Float.class, FloatTypeHandler.class);
         register(float.class, FloatTypeHandler.class);
@@ -75,27 +86,25 @@ public class TypeHandlerRegistry {
         register(double.class, DoubleTypeHandler.class);
         register(JdbcType.DOUBLE, DoubleTypeHandler.class);
 
+        register(Platform.class, PlatformTypeHandler.class);
+        register(STATUS_RECORD.class, StatusTypeHandler.class);
 
         register(String.class, StringTypeHandler.class);
         register(String.class, JdbcType.CHAR, StringTypeHandler.class);
         register(String.class, JdbcType.VARCHAR, StringTypeHandler.class);
 
-
         register(JdbcType.CHAR, StringTypeHandler.class);
         register(JdbcType.VARCHAR, StringTypeHandler.class);
-
 
         register(Object.class, JdbcType.ARRAY, ArrayTypeHandler.class);
         register(JdbcType.ARRAY, ArrayTypeHandler.class);
 
         register(BigInteger.class, BigIntegerTypeHandler.class);
 
-
         register(BigDecimal.class, BigDecimalTypeHandler.class);
         register(JdbcType.REAL, BigDecimalTypeHandler.class);
         register(JdbcType.DECIMAL, BigDecimalTypeHandler.class);
         register(JdbcType.NUMERIC, BigDecimalTypeHandler.class);
-
 
         register(byte[].class, JdbcType.BLOB, BlobTypeHandler.class);
         register(byte[].class, JdbcType.LONGVARBINARY, BlobTypeHandler.class);
@@ -147,7 +156,6 @@ public class TypeHandlerRegistry {
         register(java.sql.Time.class, SqlTimeTypeHandler.class);
         register(java.sql.Timestamp.class, SqlTimestampTypeHandler.class);
 
-
         register(Character.class, CharacterTypeHandler.class);
         register(char.class, CharacterTypeHandler.class);
     }
@@ -167,34 +175,39 @@ public class TypeHandlerRegistry {
         return null;
     }
 
-
     public TypeHandler getTypeHandler(Class javaType, JdbcType jdbcType) {
+        TypeHandler typeHandler=null;
         if (javaType != null && jdbcType != null) {
-            return this.javaTypeHandlerMap.get(javaType.getName()).get(jdbcType.name());
+            typeHandler= this.javaTypeHandlerMap.get(javaType.getName()).get(jdbcType.name());
+            if(typeHandler!=null){
+                return typeHandler;
+            }
         }
         if (javaType != null) {
-            return this.getTypeHandler(javaType);
+            typeHandler= this.getTypeHandler(javaType);
+            if(typeHandler!=null){
+                return typeHandler;
+            }
         }
         return this.getTypeHandler(jdbcType);
     }
 
-
     private TypeHandler getTypeHandler(JdbcType jdbcType) {
-        return this.jdbcTypeHandlerMap.get(jdbcType.name());
+        String jdbcTypeName = jdbcType == null ? null : jdbcType.name();
+        return this.jdbcTypeHandlerMap.get(jdbcTypeName);
     }
-
 
     public void register(Class javaType, JdbcType jdbcType, Class typeHandlerClass) {
         if (javaType == null) {
             return;
         }
-        Map<String, TypeHandler> jdbcTypeHandlerMap = this.javaTypeHandlerMap.get(javaType);
+        Map<String, TypeHandler> jdbcTypeHandlerMap = this.javaTypeHandlerMap.get(javaType.getName());
         if (jdbcTypeHandlerMap == null) {
-            String jdbcTypeName = javaType == null ? null : jdbcType.name();
-            jdbcTypeHandlerMap = this.javaTypeHandlerMap.get(javaType.getName());
-            this.javaTypeHandlerMap.put(jdbcTypeName, jdbcTypeHandlerMap);
+            jdbcTypeHandlerMap = new HashMap<>();
+            this.javaTypeHandlerMap.put(javaType.getName(), jdbcTypeHandlerMap);
         }
-        jdbcTypeHandlerMap.put(jdbcType.name(), this.allTypeHandler.get(typeHandlerClass));
+        String jdbcTypeName = jdbcType == null ? null : jdbcType.name();
+        jdbcTypeHandlerMap.put(jdbcTypeName, this.allTypeHandler.get(typeHandlerClass));
     }
 
     public void register(JdbcType jdbcType, Class typeHandlerClass) {

@@ -120,72 +120,9 @@ public class JDBCTemplate implements JDBCSupport {
         try {
             TypeHandler typeHandler = typeHandlerRegistry.getTypeHandler(fieldType, null);
             typeHandler.setParameter(preparedStatement, index, value);
-//            if (fieldType == byte.class || fieldType == Byte.class) {
-//                preparedStatement.setByte(
-//                        index,
-//                        StringUtility.isNullOrEmpty(value) ? 0 : (Byte) value);
-//                return;
-//            }
-//            if (fieldType == int.class || fieldType == Integer.class) {
-//                preparedStatement.setInt(
-//                        index,
-//                        StringUtility.isNullOrEmpty(value) ? 0 : (Integer) value);
-//                return;
-//            }
-//            if (fieldType == long.class || fieldType == Long.class) {
-//                preparedStatement.setLong(
-//                        index,
-//                        StringUtility.isNullOrEmpty(value) ? 0L : (Long) value);
-//                return;
-//            }
-//            if (fieldType == String.class) {
-//                preparedStatement.setString(index, StringUtility
-//                        .isNullOrEmpty(value) ? "" : String.valueOf(value));
-//                return;
-//            }
-//            if (fieldType == Date.class) {
-//                preparedStatement
-//                        .setDate(
-//                                index, (Date) value);
-//                return;
-//            }
-//            if (fieldType == Timestamp.class) {
-//                preparedStatement
-//                        .setTimestamp(
-//                                index, (Timestamp) value);
-//                return;
-//            }
-//            if (fieldType == boolean.class || fieldType == Boolean.class) {
-//                boolean b = false;
-//                if (!StringUtility.isNullOrEmpty(value)) {
-//                    if (String.valueOf(STATUS_RECORD.ENABLE
-//                            .ordinal()).equals(value) || Boolean.TRUE.toString().equalsIgnoreCase(value.toString())) {
-//                        b = true;
-//                    }
-//                }
-//                preparedStatement.setBoolean(
-//                        index, b);
-//                return;
-//            }
-//            if (fieldType == double.class || fieldType == Double.class) {
-//                preparedStatement.setDouble(
-//                        index,
-//                        StringUtility.isNullOrEmpty(value) ? 0.0 : (Double) value);
-//                return;
-//            }
-//            if (fieldType == BigDecimal.class) {
-//                BigDecimal bigDecimal = (BigDecimal) value;
-//                if (bigDecimal == null) {
-//                    bigDecimal = new BigDecimal(0);
-//                }
-//                bigDecimal = bigDecimal.setScale(parameter.getScale(), BigDecimal.ROUND_HALF_UP);
-//                preparedStatement.setBigDecimal(
-//                        index, bigDecimal);
-//                return;
-//            }
-//            preparedStatement.setObject(index, null);
-//            logger.debug("JDBCTemplate setSQLParameter error sqlType not exist"
-//                    + fieldType);
+
+            logger.debug("JDBCTemplate setSQLParameter error sqlType not exist"
+                    + fieldType);
         } catch (Exception e) {
             logger.error(
                     "Executor JDBCTemplate error attribute:"
