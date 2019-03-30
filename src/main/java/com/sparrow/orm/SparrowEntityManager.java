@@ -17,7 +17,7 @@
 
 package com.sparrow.orm;
 import com.sparrow.constant.magic.SYMBOL;
-import com.sparrow.enums.DATABASE_SPLIT_STRATEGY;
+import com.sparrow.protocol.enums.DATABASE_SPLIT_STRATEGY;
 import com.sparrow.utility.StringUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
