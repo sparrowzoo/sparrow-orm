@@ -18,8 +18,8 @@
 package com.sparrow.orm;
 
 import com.sparrow.cg.MethodAccessor;
-import com.sparrow.constant.CONSTANT;
-import com.sparrow.constant.magic.SYMBOL;
+import com.sparrow.protocol.constant.CONSTANT;
+import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.container.Container;
 import com.sparrow.core.StrategyFactory;

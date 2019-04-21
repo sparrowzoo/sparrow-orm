@@ -18,7 +18,7 @@
 package com.sparrow.orm.template.impl;
 
 import com.sparrow.constant.CONFIG_KEY_DB;
-import com.sparrow.constant.magic.DIGIT;
+import com.sparrow.protocol.constant.magic.DIGIT;
 import com.sparrow.core.Pair;
 import com.sparrow.orm.*;
 import com.sparrow.orm.query.SearchCriteria;

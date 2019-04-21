@@ -17,7 +17,7 @@
 
 package com.sparrow.orm.query.sql.impl.criteria.processor;
 
-import com.sparrow.constant.magic.SYMBOL;
+import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.enums.ComparisonOperator;
 import com.sparrow.orm.EntityManager;

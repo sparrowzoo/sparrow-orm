@@ -17,9 +17,9 @@
 
 package com.sparrow.orm;
 
-import com.sparrow.constant.CONSTANT;
+import com.sparrow.protocol.constant.CONSTANT;
 import com.sparrow.constant.SYS_OBJECT_NAME;
-import com.sparrow.constant.magic.SYMBOL;
+import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.datasource.ConnectionContextHolder;
 import com.sparrow.datasource.DatasourceKey;

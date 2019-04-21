@@ -17,7 +17,7 @@
 
 package com.sparrow.orm.query.sql.impl.operation;
 
-import com.sparrow.constant.magic.SYMBOL;
+import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.orm.*;
 import com.sparrow.orm.query.Criteria;
