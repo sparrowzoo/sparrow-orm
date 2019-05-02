@@ -21,7 +21,7 @@ import com.sparrow.cg.MethodAccessor;
 import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.container.Container;
 import com.sparrow.core.spi.ApplicationContext;
-import com.sparrow.protocol.Entity;
+import com.sparrow.protocol.POJO;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -35,9 +35,9 @@ import java.util.Map;
 public class RowMapperHelper {
     private static ClassFactoryBean<EntityManager> entityManagerFactoryBean=EntityManagerFactoryBean.getInstance();
 
-    public static void mapper(ResultSet rs, Entity... entities) {
-        Map<String, Entity> entityMap = new HashMap<String, Entity>();
-        for (Entity entity : entities) {
+    public static void mapper(ResultSet rs, POJO... entities) {
+        Map<String, POJO> entityMap = new HashMap<String, POJO>();
+        for (POJO entity : entities) {
             EntityManager entityManager = entityManagerFactoryBean.getObject(entity.getClass());
             entityMap.put(entityManager.getTableName().toLowerCase(), entity);
         }
@@ -45,7 +45,7 @@ public class RowMapperHelper {
             ResultSetMetaData resultSetMetaData = rs.getMetaData();
             for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
                 String tableName = resultSetMetaData.getTableName(i);
-                Entity entity = entityMap.get(tableName.toLowerCase());
+                POJO entity = entityMap.get(tableName.toLowerCase());
                 String column = resultSetMetaData.getColumnName(i);
                 Container container = ApplicationContext.getContainer();
                 MethodAccessor methodAccessor = container.getProxyBean(entity.getClass());
