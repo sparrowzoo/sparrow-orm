@@ -115,8 +115,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     private JDBCParameter getSelectSql(SearchCriteria searchCriteria) {
-        if(searchCriteria==null){
-            searchCriteria=new SearchCriteria();
+        if (searchCriteria == null) {
+            searchCriteria = new SearchCriteria();
         }
         StringBuilder selectSql = new StringBuilder();
         OperationEntity boolOperationEntity = this.criteriaProcessor.where(searchCriteria.getWhere());
@@ -135,7 +135,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             selectSql.append(columns);
         }
         selectSql.append(" from " + this.prepareORM.getTableName(searchCriteria.getTableSuffix())
-                + " as " + StringUtility.getEntityNameByClass(this.modelClazz));
+            + " as " + StringUtility.getEntityNameByClass(this.modelClazz));
         if (!StringUtility.isNullOrEmpty(whereClause)) {
             selectSql.append(" where " + whereClause);
         }
@@ -145,7 +145,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         }
 
         if (!StringUtility.isNullOrEmpty(searchCriteria.getPageSize())
-                && searchCriteria.getPageSize() != DIGIT.ALL) {
+            && searchCriteria.getPageSize() != DIGIT.ALL) {
             selectSql.append(searchCriteria.getLimitClause());
         }
         logger.info(selectSql.toString());
@@ -153,8 +153,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     private ResultSet select(SearchCriteria searchCriteria) {
-        if(searchCriteria==null){
-            searchCriteria=new SearchCriteria();
+        if (searchCriteria == null) {
+            searchCriteria = new SearchCriteria();
         }
         JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
         ResultSet rs = this.jdbcSupport.executeQuery(jdbcParameter);
@@ -171,7 +171,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.prepareORM.getEntityManager().getFields());
         select.append(" from "
-                + this.prepareORM.getEntityManager().getTableName());
+            + this.prepareORM.getEntityManager().getTableName());
         select.append(" " + this.modelName);
         Field uniqueField = this.prepareORM.getEntityManager().getUniqueField(uniqueKeyCriteria.getUniqueFieldName());
         select.append(" where " + uniqueField.getColumnName() + "=?");
@@ -256,7 +256,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public <Z> Set<Z> firstList(SearchCriteria criteria) {
         Set<Z> list = new LinkedHashSet<Z>();
         ResultSet rs = this.select(criteria);
-        if (rs==null) {
+        if (rs == null) {
             return list;
         }
 
@@ -303,8 +303,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             return map;
         }
         try {
-            String fields=null;
-            if(searchCriteria.getRowMapper()==null){
+            String fields = null;
+            if (searchCriteria.getRowMapper() == null) {
                 fields = this.criteriaProcessor.fields(searchCriteria.getFields());
             }
             while (rs.next()) {
@@ -331,9 +331,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         Object count = this.jdbcSupport.executeScalar(jdbcParameter);
         if (count == null) {
             return 0L;
-        } else {
-            return Long.valueOf(count.toString());
         }
+        return Long.valueOf(count.toString());
     }
 
     @Override
@@ -347,9 +346,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         Long count = this.jdbcSupport.executeScalar(jdbcParameter);
         if (count == null) {
             return 0L;
-        } else {
-            return count;
         }
+        return count;
     }
 
     @Override
@@ -358,9 +356,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
-        } else {
-            return (X) fieldValue;
         }
+        return (X) fieldValue;
     }
 
     @Override
@@ -371,16 +368,14 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         return this.getAggregateByCriteria(searchCriteria);
     }
 
-
     @Override
     public <X> X getFieldValueByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
         JDBCParameter jdbcParameter = this.prepareORM.getFieldValue(uniqueKeyCriteria.getResultFiled(), uniqueKeyCriteria.getKey(), uniqueKeyCriteria.getUniqueFieldName());
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
-        } else {
-            return (X) fieldValue;
         }
+        return (X) fieldValue;
     }
 
     @Override
@@ -389,9 +384,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         Object fieldValue = this.jdbcSupport.executeScalar(jdbcParameter);
         if (fieldValue == null) {
             return null;
-        } else {
-            return (X) fieldValue;
         }
+        return (X) fieldValue;
     }
 
     @Override
