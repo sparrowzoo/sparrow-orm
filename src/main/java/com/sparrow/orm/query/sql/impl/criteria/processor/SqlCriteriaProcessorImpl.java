@@ -51,7 +51,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
             String[] fieldArray = fields.split(SYMBOL.COMMA);
             StringBuilder fieldBuilder = new StringBuilder();
             for (String field : fieldArray) {
-                if (StringUtility.isNullOrEmpty(fieldBuilder)) {
+                if (!StringUtility.isNullOrEmpty(fieldBuilder)) {
                     fieldBuilder.append(SYMBOL.COMMA);
                 }
                 CriteriaField criteriaField = new SimpleCriteriaField(field);

@@ -152,17 +152,13 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         return new JDBCParameter(selectSql.toString(), boolOperationEntity.getParameterList());
     }
 
-    private ORMResult select(SearchCriteria searchCriteria) {
+    private ResultSet select(SearchCriteria searchCriteria) {
         if(searchCriteria==null){
             searchCriteria=new SearchCriteria();
         }
-        Long count = this.getCount(searchCriteria);
-        if (count == 0) {
-            return null;
-        }
         JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
         ResultSet rs = this.jdbcSupport.executeQuery(jdbcParameter);
-        return new ORMResult(rs, count);
+        return rs;
     }
 
     @Override
@@ -201,11 +197,10 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     @Override
     @SuppressWarnings("unchecked")
     public T getEntity(SearchCriteria criteria) {
-        ORMResult ormResult = this.select(criteria);
-        if (ormResult == null) {
+        ResultSet rs = this.select(criteria);
+        if (rs == null) {
             return null;
         }
-        ResultSet rs = ormResult.getResultSet();
         T model = null;
         try {
             if (rs.next()) {
@@ -234,12 +229,11 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             list = new ArrayList<T>();
         }
 
-        ORMResult ormResult = this.select(criteria);
-        if (ormResult == null) {
+        ResultSet rs = this.select(criteria);
+        if (rs == null) {
             return list;
         }
 
-        ResultSet rs = ormResult.getResultSet();
         try {
             while (rs.next()) {
                 T m;
@@ -253,7 +247,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            this.jdbcSupport.release(ormResult.getResultSet());
+            this.jdbcSupport.release(rs);
         }
         return list;
     }
@@ -261,13 +255,12 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     @Override
     public <Z> Set<Z> firstList(SearchCriteria criteria) {
         Set<Z> list = new LinkedHashSet<Z>();
-        ORMResult ormResult = this.select(criteria);
-        if (ormResult == null || ormResult.getResultSet() == null || ormResult.getRecordCount() == 0) {
+        ResultSet rs = this.select(criteria);
+        if (rs==null) {
             return list;
         }
 
         try {
-            ResultSet rs = ormResult.getResultSet();
             while (rs.next()) {
                 Object o = rs.getObject(1);
                 if (o instanceof Number) {
@@ -280,7 +273,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             logger.error("first result", ex);
             return list;
         } finally {
-            this.jdbcSupport.release(ormResult.getResultSet());
+            this.jdbcSupport.release(rs);
         }
         return list;
     }
@@ -305,28 +298,30 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     @Override
     public <P, Q> Map<P, Q> getMap(SearchCriteria searchCriteria) {
         Map<P, Q> map = new LinkedHashMap<P, Q>();
-        ORMResult ormResult = this.select(searchCriteria);
-        if (ormResult == null) {
+        ResultSet rs = this.select(searchCriteria);
+        if (rs == null) {
             return map;
         }
         try {
-            ResultSet rs = ormResult.getResultSet();
+            String fields=null;
+            if(searchCriteria.getRowMapper()==null){
+                fields = this.criteriaProcessor.fields(searchCriteria.getFields());
+            }
             while (rs.next()) {
                 if (searchCriteria.getRowMapper() != null) {
                     Pair<P, Q> entry = (Pair<P, Q>) searchCriteria.getRowMapper().mapRow(rs, rs.getRow());
                     map.put(entry.getFirst(), entry.getSecond());
-                } else {
-                    String fields = this.criteriaProcessor.fields(searchCriteria.getFields());
-                    Pair<String, String> fieldPair = Pair.split(fields, ",");
-                    map.put((P) rs.getObject(fieldPair.getFirst()), (Q) rs.getObject(fieldPair.getSecond()));
+                    continue;
                 }
+                Pair<String, String> fieldPair = Pair.split(fields, ",");
+                map.put((P) rs.getObject(fieldPair.getFirst()), (Q) rs.getObject(fieldPair.getSecond()));
             }
             return map;
         } catch (Exception ex) {
             logger.error("get map", ex);
             return map;
         } finally {
-            this.jdbcSupport.release(ormResult.getResultSet());
+            this.jdbcSupport.release(rs);
         }
     }
 
@@ -403,34 +398,5 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public int changeStatus(StatusCriteria statusCriteria) {
         JDBCParameter jdbcParameter = this.prepareORM.changeStatus(statusCriteria.getIds(), statusCriteria.getStatus());
         return this.jdbcSupport.executeUpdate(jdbcParameter);
-    }
-
-    class ORMResult {
-        ORMResult() {
-        }
-
-        public ORMResult(ResultSet resultSet, Long recordCount) {
-            this.resultSet = resultSet;
-            this.recordCount = recordCount;
-        }
-
-        public void setResultSet(ResultSet resultSet) {
-            this.resultSet = resultSet;
-        }
-
-        public void setRecordCount(Long recordCount) {
-            this.recordCount = recordCount;
-        }
-
-        public ResultSet getResultSet() {
-            return resultSet;
-        }
-
-        public Long getRecordCount() {
-            return recordCount;
-        }
-
-        ResultSet resultSet;
-        Long recordCount;
     }
 }
