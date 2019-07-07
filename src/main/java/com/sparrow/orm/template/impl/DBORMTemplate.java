@@ -33,6 +33,7 @@ import com.sparrow.protocol.db.UniqueKeyCriteria;
 import com.sparrow.protocol.enums.DATABASE_SPLIT_STRATEGY;
 import com.sparrow.protocol.pager.PagerQuery;
 import com.sparrow.support.db.JDBCSupport;
+import com.sparrow.utility.ClassUtility;
 import com.sparrow.utility.StringUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public DBORMTemplate(Class clazz) {
         this.modelClazz = clazz;
         if (this.modelClazz != null) {
-            this.modelName = StringUtility.getEntityNameByClass(this.modelClazz);
+            this.modelName = ClassUtility.getEntityNameByClass(this.modelClazz);
         }
         this.prepareORM = new PrepareORM<T>(this.modelClazz, this.criteriaProcessor);
         DATABASE_SPLIT_STRATEGY databaseSplitKey = this.prepareORM.getEntityManager().getDatabaseSplitStrategy();
@@ -134,8 +135,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             String columns = this.criteriaProcessor.aggregate(searchCriteria.getAggregate(), searchCriteria.getFields());
             selectSql.append(columns);
         }
-        selectSql.append(" from " + this.prepareORM.getTableName(searchCriteria.getTableSuffix())
-            + " as " + StringUtility.getEntityNameByClass(this.modelClazz));
+        selectSql.append(" from " + this.prepareORM.getTableName(searchCriteria.getTableSuffix()));
         if (!StringUtility.isNullOrEmpty(whereClause)) {
             selectSql.append(" where " + whereClause);
         }
@@ -171,8 +171,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.prepareORM.getEntityManager().getFields());
         select.append(" from "
-            + this.prepareORM.getEntityManager().getTableName());
-        select.append(" " + this.modelName);
+            + this.prepareORM.getEntityManager().getDialectTableName());
         Field uniqueField = this.prepareORM.getEntityManager().getUniqueField(uniqueKeyCriteria.getUniqueFieldName());
         select.append(" where " + uniqueField.getColumnName() + "=?");
         JDBCParameter jdbcParameter = new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, uniqueField.convert(uniqueKeyCriteria.getKey().toString()))));

@@ -18,21 +18,24 @@
 package com.sparrow.orm;
 
 import com.sparrow.cg.MethodAccessor;
-import com.sparrow.protocol.constant.CONSTANT;
-import com.sparrow.protocol.constant.magic.SYMBOL;
-import com.sparrow.container.ClassFactoryBean;
 import com.sparrow.container.Container;
 import com.sparrow.core.StrategyFactory;
 import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
-import com.sparrow.orm.query.sql.OperationEntity;
 import com.sparrow.orm.query.sql.CriteriaProcessor;
+import com.sparrow.orm.query.sql.OperationEntity;
 import com.sparrow.orm.type.JdbcType;
 import com.sparrow.orm.type.TypeHandler;
 import com.sparrow.orm.type.TypeHandlerRegistry;
+import com.sparrow.protocol.constant.CONSTANT;
+import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.protocol.enums.STATUS_RECORD;
+import com.sparrow.utility.ClassUtility;
 import com.sparrow.utility.StringUtility;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
@@ -43,9 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author harry
@@ -86,10 +86,10 @@ public class PrepareORM<T> {
     }
 
     public String getTableName(List<Object> tableSuffix) {
-        if(tableSuffix==null){
-            return this.entityManager.getTableName();
+        if (tableSuffix == null) {
+            return this.entityManager.getDialectTableName();
         }
-        return this.entityManager.getTableName() + this.entityManager.getTableSuffix(tableSuffix);
+        return this.entityManager.getDialectTableName() + this.entityManager.getTableSuffix(tableSuffix);
     }
 
     /**
@@ -98,10 +98,10 @@ public class PrepareORM<T> {
     public PrepareORM(Class modelClazz, CriteriaProcessor criteriaProcessor) {
         this.modelClazz = modelClazz;
         this.methodAccessor = container.getProxyBean(
-            this.modelClazz);
+                this.modelClazz);
         this.entityManager = new SparrowEntityManager(this.modelClazz);
         EntityManagerFactoryBean.getInstance().pubObject(this.modelClazz, this.entityManager);
-        this.modelName = StringUtility.getEntityNameByClass(this.modelClazz);
+        this.modelName = ClassUtility.getEntityNameByClass(this.modelClazz);
         this.criteriaProcessor = criteriaProcessor;
     }
 
@@ -138,7 +138,7 @@ public class PrepareORM<T> {
                             id = idGenerator.generate();
                             parameters.add(new Parameter(field, id));
                             this.methodAccessor
-                                .set(model, field.getName(), id);
+                                    .set(model, field.getName(), id);
                         }
                     }
                     break;
@@ -188,8 +188,8 @@ public class PrepareORM<T> {
         OperationEntity where = this.criteriaProcessor.where(criteria.getWhere());
         OperationEntity setClause = this.criteriaProcessor.setClause(criteria.getSetClausePairList());
         String update = String.format("update %1$s set %2$s where %3$s",
-            this.getTableName(criteria.getTableSuffix()), setClause.getClause(),
-            where.getClause());
+                this.getTableName(criteria.getTableSuffix()), setClause.getClause(),
+                where.getClause());
         List<Parameter> updateParameters = new ArrayList<Parameter>();
         updateParameters.addAll(setClause.getParameterList());
         updateParameters.addAll(where.getParameterList());
@@ -202,7 +202,7 @@ public class PrepareORM<T> {
         }
         Field primaryField = this.entityManager.getPrimary();
         return new JDBCParameter(this.entityManager.getDelete(),
-            Collections.singletonList(new Parameter(primaryField, primaryField.convert(id.toString()))));
+                Collections.singletonList(new Parameter(primaryField, primaryField.convert(id.toString()))));
     }
 
     public JDBCParameter delete(SearchCriteria searchCriteria) {
@@ -219,7 +219,7 @@ public class PrepareORM<T> {
     }
 
     public T setEntity(
-        Map<String, Object> values) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+            Map<String, Object> values) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         if (values == null || values.size() == 0) {
             return null;
         }
@@ -235,7 +235,7 @@ public class PrepareORM<T> {
                 }
                 if (values.containsKey(field.getColumnName())) {
                     this.methodAccessor.set(model, field.getName(),
-                        values.get(field.getColumnName()));
+                            values.get(field.getColumnName()));
                 }
             } catch (Exception e) {
                 logger.error("set entity error", e);
@@ -279,17 +279,17 @@ public class PrepareORM<T> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.entityManager.getFields());
         select.append(" from "
-            + this.entityManager.getTableName() + " as " + this.modelName);
+                + this.entityManager.getTableName());
         select.append(" where " + this.entityManager.getPrimary().getColumnName() + "=?");
         return new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(this.entityManager.getUniqueField(uniqueKey), key)));
     }
 
     public JDBCParameter getCount(Object key, String uniqueKey) {
         StringBuilder select = new StringBuilder("select count(*) from "
-            + this.entityManager.getTableName() + " as " + this.modelName);
+                + this.entityManager.getTableName());
         Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
         select.append(" where "
-            + uniqueField.getColumnName() + "=?");
+                + uniqueField.getColumnName() + "=?");
         return new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, key)));
     }
 
@@ -310,10 +310,9 @@ public class PrepareORM<T> {
         }
         StringBuilder select = new StringBuilder();
 
-        tableName = this.getTableName(criteria.getTableSuffix()) + " as "
-            + this.modelName;
+        tableName = this.getTableName(criteria.getTableSuffix());
         select.append(String.format("select count(%1$s) from %2$s",
-            field, tableName));
+                field, tableName));
         if (!StringUtility.isNullOrEmpty(whereClause)) {
             select.append(" where " + whereClause);
         }
@@ -326,8 +325,7 @@ public class PrepareORM<T> {
         }
         fieldName = this.entityManager.getField(fieldName).getColumnName();
         String select = String.format("select %1$s from %2$s", fieldName,
-            this.entityManager.getTableName() + " as "
-                + this.modelName);
+                this.entityManager.getTableName());
         if (uniqueKey != null) {
             Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
             select += String.format(" where %1$s=?", uniqueField.getColumnName());
@@ -345,19 +343,19 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("update %1$s set %2$s=? where %3$s %4$s",
-            this.entityManager.getTableName(),
-            this.entityManager.getStatus().getColumnName(),
-            this.entityManager.getPrimary().getColumnName(),
-            whereClause);
+                this.entityManager.getTableName(),
+                this.entityManager.getStatus().getColumnName(),
+                this.entityManager.getPrimary().getColumnName(),
+                whereClause);
 
         Parameter[] sqlParameters;
         if (primaryKey.contains(SYMBOL.COMMA)) {
-            sqlParameters = new Parameter[] {
-                new Parameter(this.entityManager.getStatus(), status.name())};
+            sqlParameters = new Parameter[]{
+                    new Parameter(this.entityManager.getStatus(), status.name())};
         } else {
-            sqlParameters = new Parameter[] {
-                new Parameter(this.entityManager.getStatus(), status.name()),
-                new Parameter(this.entityManager.getPrimary(), this.entityManager.getPrimary().convert(primaryKey))};
+            sqlParameters = new Parameter[]{
+                    new Parameter(this.entityManager.getStatus(), status.name()),
+                    new Parameter(this.entityManager.getPrimary(), this.entityManager.getPrimary().convert(primaryKey))};
         }
         return new JDBCParameter(updateSql, Arrays.asList(sqlParameters));
     }
@@ -370,15 +368,15 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("DELETE FROM %1$s where %2$s %3$s",
-            this.entityManager.getTableName(),
-            this.entityManager.getPrimary().getColumnName(),
-            whereClause);
+                this.entityManager.getTableName(),
+                this.entityManager.getPrimary().getColumnName(),
+                whereClause);
 
         Parameter[] sqlParameters = new Parameter[0];
         if (!ids.contains(SYMBOL.COMMA)) {
-            sqlParameters = new Parameter[] {
-                new Parameter(this.entityManager.getPrimary(),
-                    this.entityManager.getPrimary().convert(ids))
+            sqlParameters = new Parameter[]{
+                    new Parameter(this.entityManager.getPrimary(),
+                            this.entityManager.getPrimary().convert(ids))
             };
         }
         return new JDBCParameter(updateSql, Arrays.asList(sqlParameters));
