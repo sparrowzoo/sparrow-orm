@@ -92,16 +92,16 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
                             relationOperationEntity = new InOperation().operation(criteria);
                             break;
                         case START_WITH:
-                            relationOperationEntity = new WildcardOperation("?%").operation(criteria);
+                            relationOperationEntity = new WildcardOperation("CONCAT(?,'%')").operation(criteria);
                             break;
                         case END_WITH:
-                            relationOperationEntity = new WildcardOperation("%?").operation(criteria);
+                            relationOperationEntity = new WildcardOperation("CONCAT('%',?)").operation(criteria);
                             break;
                         case CONTAIN:
-                            relationOperationEntity = new WildcardOperation("%?%").operation(criteria);
+                            relationOperationEntity = new WildcardOperation("CONCAT('%',?,'%')").operation(criteria);
                             break;
                         case NOT_CONTAIN:
-                            relationOperationEntity = new WildcardOperation("%?%").operation(criteria);
+                            relationOperationEntity = new WildcardOperation("CONCAT('%',?,'%')").operation(criteria);
                             break;
                         case MOD:
                             relationOperationEntity = new ModOperation().operation(criteria);

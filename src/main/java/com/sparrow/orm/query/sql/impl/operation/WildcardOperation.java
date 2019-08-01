@@ -42,7 +42,7 @@ public class WildcardOperation implements RelationalOperation {
         CriteriaField criteriaField = criteria.getField();
         EntityManager entityManager = entityManagerFactoryBean.getObject(criteriaField.getAlias());
         Field field = entityManager.getField(criteriaField.getName());
-        String condition = (criteria.isAlias() ? criteria.getField().getAlias() + SYMBOL.DOT : SYMBOL.EMPTY) + field.getColumnName() + SYMBOL.BLANK + criteria.getCriteriaEntry().getKey().rendered() + SYMBOL.BLANK + SYMBOL.SINGLE_QUOTES + wildcard + SYMBOL.SINGLE_QUOTES;
+        String condition = (criteria.isAlias() ? criteria.getField().getAlias() + SYMBOL.DOT : SYMBOL.EMPTY) + field.getColumnName() + SYMBOL.BLANK + criteria.getCriteriaEntry().getKey().rendered() + SYMBOL.BLANK +  wildcard;
         Parameter parameter = new Parameter(field, criteria.getCriteriaEntry().getValue());
         return new RelationOperationEntity(condition, parameter);
     }
