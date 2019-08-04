@@ -279,14 +279,14 @@ public class PrepareORM<T> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.entityManager.getFields());
         select.append(" from "
-                + this.entityManager.getTableName());
+                + this.entityManager.getDialectTableName());
         select.append(" where " + this.entityManager.getPrimary().getColumnName() + "=?");
         return new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(this.entityManager.getUniqueField(uniqueKey), key)));
     }
 
     public JDBCParameter getCount(Object key, String uniqueKey) {
         StringBuilder select = new StringBuilder("select count(*) from "
-                + this.entityManager.getTableName());
+                + this.entityManager.getDialectTableName());
         Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
         select.append(" where "
                 + uniqueField.getColumnName() + "=?");
@@ -323,16 +323,18 @@ public class PrepareORM<T> {
         if (fieldName.contains(SYMBOL.COMMA)) {
             fieldName = fieldName.split("\\.")[1];
         }
-        fieldName = this.entityManager.getField(fieldName).getColumnName();
-        String select = String.format("select %1$s from %2$s", fieldName,
-                this.entityManager.getTableName());
-        if (uniqueKey != null) {
-            Field uniqueField = this.entityManager.getUniqueField(uniqueKey);
-            select += String.format(" where %1$s=?", uniqueField.getColumnName());
-            return new JDBCParameter(select, Collections.singletonList(new Parameter(uniqueField, key)));
+
+        Field uniqueField = null;
+        if (StringUtility.isNullOrEmpty(uniqueKey)) {
+            uniqueField = this.entityManager.getPrimary();
         } else {
-            return new JDBCParameter(select);
+            uniqueField = this.entityManager.getUniqueField(uniqueKey);
         }
+
+        fieldName = this.entityManager.getField(fieldName).getColumnName();
+        String select = String.format("select %1$s from %2$s where %3$s=?", fieldName,
+                this.entityManager.getDialectTableName(), uniqueField.getColumnName());
+        return new JDBCParameter(select, Collections.singletonList(new Parameter(uniqueField, key)));
     }
 
     public JDBCParameter changeStatus(String primaryKey, STATUS_RECORD status) {
@@ -343,7 +345,7 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("update %1$s set %2$s=? where %3$s %4$s",
-                this.entityManager.getTableName(),
+                this.entityManager.getDialectTableName(),
                 this.entityManager.getStatus().getColumnName(),
                 this.entityManager.getPrimary().getColumnName(),
                 whereClause);
@@ -351,10 +353,10 @@ public class PrepareORM<T> {
         Parameter[] sqlParameters;
         if (primaryKey.contains(SYMBOL.COMMA)) {
             sqlParameters = new Parameter[]{
-                    new Parameter(this.entityManager.getStatus(), status.name())};
+                    new Parameter(this.entityManager.getStatus(), status)};
         } else {
             sqlParameters = new Parameter[]{
-                    new Parameter(this.entityManager.getStatus(), status.name()),
+                    new Parameter(this.entityManager.getStatus(), status),
                     new Parameter(this.entityManager.getPrimary(), this.entityManager.getPrimary().convert(primaryKey))};
         }
         return new JDBCParameter(updateSql, Arrays.asList(sqlParameters));
@@ -368,7 +370,7 @@ public class PrepareORM<T> {
             whereClause = " =?";
         }
         String updateSql = String.format("DELETE FROM %1$s where %2$s %3$s",
-                this.entityManager.getTableName(),
+                this.entityManager.getDialectTableName(),
                 this.entityManager.getPrimary().getColumnName(),
                 whereClause);
 
