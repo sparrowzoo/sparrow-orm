@@ -15,7 +15,6 @@
  */
 package com.sparrow.orm.type;
 
-import java.io.ByteArrayInputStream;
 import java.sql.*;
 
 /**
