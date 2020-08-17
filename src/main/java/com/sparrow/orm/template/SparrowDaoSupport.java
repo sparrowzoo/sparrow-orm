@@ -37,6 +37,8 @@ public interface SparrowDaoSupport<T, I> extends DaoSupport<T, I> {
      */
     <P, Q> Map<P, Q> getMap(SearchCriteria criteria);
 
+    Map<I,T> getEntityMap(SearchCriteria criteria);
+
     <Z> Set<Z> firstList(SearchCriteria criteria);
 
     Long getCount(SearchCriteria criteria);

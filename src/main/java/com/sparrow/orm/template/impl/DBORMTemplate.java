@@ -145,7 +145,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         }
 
         if (!StringUtility.isNullOrEmpty(searchCriteria.getPageSize())
-            && searchCriteria.getPageSize() != DIGIT.ALL) {
+                && searchCriteria.getPageSize() != DIGIT.ALL) {
             selectSql.append(searchCriteria.getLimitClause());
         }
         logger.info(selectSql.toString());
@@ -171,7 +171,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         StringBuilder select = new StringBuilder("select ");
         select.append(this.prepareORM.getEntityManager().getFields());
         select.append(" from "
-            + this.prepareORM.getEntityManager().getDialectTableName());
+                + this.prepareORM.getEntityManager().getDialectTableName());
         Field uniqueField = this.prepareORM.getEntityManager().getUniqueField(uniqueKeyCriteria.getUniqueFieldName());
         select.append(" where " + uniqueField.getColumnName() + "=?");
         JDBCParameter jdbcParameter = new JDBCParameter(select.toString(), Collections.singletonList(new Parameter(uniqueField, uniqueField.convert(uniqueKeyCriteria.getKey().toString()))));
@@ -251,6 +251,38 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
         return list;
     }
 
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<I, T> getEntityMap(SearchCriteria criteria) {
+        //返回null会报错
+        Map<I, T> map;
+        if (criteria != null && criteria.getPageSize() != null && criteria.getPageSize() > 0) {
+            map = new LinkedHashMap<>(criteria.getPageSize());
+        } else {
+            map = new LinkedHashMap<>();
+        }
+
+        ResultSet rs = this.select(criteria);
+        if (rs == null) {
+            return map;
+        }
+
+        try {
+            while (rs.next()) {
+                String primaryName = this.prepareORM.getEntityManager().getPrimary().getName();
+                T m = this.prepareORM.setEntity(rs, null);
+                I key = (I) this.prepareORM.getMethodAccessor().get(m, primaryName);
+                map.put(key, m);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            this.jdbcSupport.release(rs);
+        }
+        return map;
+    }
+
     @Override
     public <Z> Set<Z> firstList(SearchCriteria criteria) {
         Set<Z> list = new LinkedHashSet<Z>();
@@ -291,7 +323,6 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     public List<T> getList(PagerQuery query) {
         SearchCriteria criteria = new SearchCriteria(query);
         return this.getList(criteria);
-
     }
 
     @Override

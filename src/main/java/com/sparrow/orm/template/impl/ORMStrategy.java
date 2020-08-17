@@ -76,6 +76,11 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
+    public Map<I, T> getEntityMap(SearchCriteria criteria) {
+        return this.ormDaoSupport.getEntityMap(criteria);
+    }
+
+    @Override
     public <Z> Set<Z> firstList(SearchCriteria criteria) {
         return this.ormDaoSupport.firstList(criteria);
     }
