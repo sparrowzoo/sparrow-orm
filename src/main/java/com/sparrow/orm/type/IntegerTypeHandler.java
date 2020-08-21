@@ -27,7 +27,7 @@ public class IntegerTypeHandler implements TypeHandler<Integer> {
 
     @Override
     public void setParameter(PreparedStatement ps, int i, Integer parameter) throws SQLException {
-        ps.setLong(i, parameter);
+        ps.setInt(i, parameter);
     }
 
     @Override
