@@ -18,6 +18,7 @@
 package com.sparrow.orm.template.impl;
 
 import com.sparrow.constant.CONFIG_KEY_DB;
+import com.sparrow.orm.query.Criteria;
 import com.sparrow.protocol.constant.magic.DIGIT;
 import com.sparrow.core.Pair;
 import com.sparrow.orm.*;
@@ -357,7 +358,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public Long getCountByUnique(UniqueKeyCriteria uniqueKeyCriteria) {
-        JDBCParameter jdbcParameter = this.prepareORM.getCount(uniqueKeyCriteria.getKey(), uniqueKeyCriteria.getResultFiled());
+        JDBCParameter jdbcParameter = this.prepareORM.getCount(uniqueKeyCriteria.getKey(), uniqueKeyCriteria.getUniqueFieldName());
         Object count = this.jdbcSupport.executeScalar(jdbcParameter);
         if (count == null) {
             return 0L;
@@ -366,8 +367,8 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public Long getCount(Object key) {
-        return this.getCount(UniqueKeyCriteria.createUniqueCriteria(key, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
+    public Long getCount(I key) {
+        return this.getCountByUnique(UniqueKeyCriteria.createUniqueCriteria(key, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
     }
 
     @Override

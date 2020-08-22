@@ -171,7 +171,7 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     @Override
-    public Long getCount(Object key) {
+    public Long getCount(I key) {
         return this.ormDaoSupport.getCount(key);
     }
 

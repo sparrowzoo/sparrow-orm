@@ -32,7 +32,10 @@ import com.sparrow.orm.query.sql.RelationOperationEntity;
 import com.sparrow.orm.query.sql.impl.operation.*;
 import com.sparrow.protocol.enums.AGGREGATE;
 import com.sparrow.utility.StringUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.SQLClientInfoException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +43,7 @@ import java.util.List;
  * @author harry
  */
 public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
+    private Logger logger = LoggerFactory.getLogger(SqlCriteriaProcessorImpl.class);
     private ClassFactoryBean<EntityManager> entityManagerFactoryBean = EntityManagerFactoryBean.getInstance();
 
     @Override
@@ -68,7 +72,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
     @Override
     public OperationEntity where(BooleanCriteria booleanCriteria) {
         OperationEntity operationEntity = new OperationEntity();
-        if(booleanCriteria==null){
+        if (booleanCriteria == null) {
             return operationEntity;
         }
         if (booleanCriteria.getCriteriaList() != null && booleanCriteria.getCriteriaList().size() > 0) {
@@ -152,8 +156,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
             if (sb.length() > 0) {
                 sb.append(",");
             }
-
-            String column = entityManagerFactoryBean.getObject(orderCriteria.getField().getAlias()).getColumnName(orderCriteria.getField().getName());
+            String column= entityManagerFactoryBean.getObject(orderCriteria.getField().getAlias()).getColumnName(orderCriteria.getField().getName());
             sb.append(column + SYMBOL.BLANK + orderCriteria.getOrder().name());
         }
         return sb.toString();
@@ -168,8 +171,10 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
                 clause.append(",");
             }
             Field field = entityManagerFactoryBean.getObject(setClausePair.getField().getAlias()).getField(setClausePair.getField().getName());
+            if (field == null) {
+                throw new RuntimeException("field is not found \nalias is '" + setClausePair.getField().getAlias() + "' set-clause-name is '" + setClausePair.getField().getName() + "'");
+            }
             String column = field.getColumnName();
-
             clause.append(column + SYMBOL.EQUAL);
             if (setClausePair.getAdd()) {
                 clause.append(column + SYMBOL.ADD);
