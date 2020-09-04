@@ -136,7 +136,7 @@ public class SqlCriteriaProcessorImpl implements CriteriaProcessor {
             for (BooleanCriteria.BooleanCriteriaLinker linker : boolOperationEntityList) {
                 OperationEntity oe = this.where(linker.getCriteria());
                 if (oe != null && !StringUtility.isNullOrEmpty(oe.getClause())) {
-                    if (linker.getKey() != null) {
+                    if (linker.getKey() != null&&!StringUtility.isNullOrEmpty(operationEntity.getClause())) {
                         operationEntity.getClause().append(linker.getKey().name());
                     }
                     operationEntity.add(oe);

@@ -120,7 +120,7 @@ public class JDBCTemplate implements JDBCSupport {
         try {
             TypeHandler typeHandler = typeHandlerRegistry.getTypeHandler(fieldType, null);
             typeHandler.setParameter(preparedStatement, index, value);
-            logger.debug("JDBCTemplate setSQLParameter error sqlType {0} not exist",fieldType);
+            logger.debug("JDBCTemplate set SQLParameter error sqlType {} not exist",fieldType);
         } catch (Exception e) {
             logger.error(
                     "Executor JDBCTemplate error attribute:"
