@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,6 +159,16 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     @Override
     public List<T> getList() {
         return this.ormDaoSupport.getList();
+    }
+
+    @Override
+    public List<T> getList(Collection<I> ids) {
+        return this.ormDaoSupport.getList(ids);
+    }
+
+    @Override
+    public Map<I, T> getEntityMap(Collection<I> ids) {
+        return this.ormDaoSupport.getEntityMap(ids);
     }
 
     @Override

@@ -89,7 +89,7 @@ public class PrepareORM<T> {
         if (tableSuffix == null) {
             return this.entityManager.getDialectTableName();
         }
-        return this.entityManager.getDialectTableName() + this.entityManager.getTableSuffix(tableSuffix);
+        return this.entityManager.getDialectTableName().replace(CONSTANT.TABLE_SUFFIX, this.entityManager.getTableSuffix(tableSuffix));
     }
 
     /**
@@ -131,15 +131,15 @@ public class PrepareORM<T> {
                     //预先设定的的主键
                     if (StringUtility.isNullOrEmpty(generator) || "set".equalsIgnoreCase(generator)) {
                         parameters.add(new Parameter(field, o));
-                    } else {
-                        //uuid IDGeneratorImpl
-                        IDGenerator idGenerator = StrategyFactory.getInstance().get(IDGenerator.class, generator);
-                        if (idGenerator != null) {
-                            id = idGenerator.generate();
-                            parameters.add(new Parameter(field, id));
-                            this.methodAccessor
-                                    .set(model, field.getName(), id);
-                        }
+                        break;
+                    }
+                    //uuid IDGeneratorImpl
+                    IDGenerator idGenerator = StrategyFactory.getInstance().get(IDGenerator.class, generator);
+                    if (idGenerator != null) {
+                        id = idGenerator.generate();
+                        parameters.add(new Parameter(field, id));
+                        this.methodAccessor
+                                .set(model, field.getName(), id);
                     }
                     break;
                 case IDENTITY:

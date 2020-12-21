@@ -158,8 +158,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
             searchCriteria = new SearchCriteria();
         }
         JDBCParameter jdbcParameter = this.getSelectSql(searchCriteria);
-        ResultSet rs = this.jdbcSupport.executeQuery(jdbcParameter);
-        return rs;
+        return this.jdbcSupport.executeQuery(jdbcParameter);
     }
 
     @Override
@@ -317,7 +316,25 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public List<T> getList() {
-        return this.getList(null);
+        return this.getList(new SearchCriteria());
+    }
+
+    @Override
+    public List<T> getList(Collection<I> ids) {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        String entityClassName=ClassUtility.getEntityNameByClass(this.prepareORM.getModelClazz());
+        String primaryProperty = this.prepareORM.getEntityManager().getPrimary().getName();
+        searchCriteria.setWhere(Criteria.field(entityClassName+"."+primaryProperty).in(ids));
+        return this.getList(searchCriteria);
+    }
+
+    @Override
+    public Map<I, T> getEntityMap(Collection<I> ids) {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        String entityClassName=ClassUtility.getEntityNameByClass(this.prepareORM.getModelClazz());
+        String primaryProperty = this.prepareORM.getEntityManager().getPrimary().getName();
+        searchCriteria.setWhere(Criteria.field(entityClassName+"."+primaryProperty).in(ids));
+        return this.getEntityMap(searchCriteria);
     }
 
     @Override
