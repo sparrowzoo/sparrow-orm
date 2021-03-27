@@ -17,7 +17,7 @@
 
 package com.sparrow.orm.template.impl;
 
-import com.sparrow.constant.CONFIG_KEY_DB;
+import com.sparrow.constant.ConfigKeyDB;
 import com.sparrow.orm.query.Criteria;
 import com.sparrow.protocol.constant.magic.DIGIT;
 import com.sparrow.core.Pair;
@@ -163,7 +163,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public T getEntity(I id) {
-        return this.getEntityByUnique(UniqueKeyCriteria.createUniqueCriteria(id, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
+        return this.getEntityByUnique(UniqueKeyCriteria.createUniqueCriteria(id, ConfigKeyDB.ORM_PRIMARY_KEY_UNIQUE));
     }
 
     @Override
@@ -385,7 +385,7 @@ public class DBORMTemplate<T, I> implements SparrowDaoSupport<T, I> {
 
     @Override
     public Long getCount(I key) {
-        return this.getCountByUnique(UniqueKeyCriteria.createUniqueCriteria(key, CONFIG_KEY_DB.ORM_PRIMARY_KEY_UNIQUE));
+        return this.getCountByUnique(UniqueKeyCriteria.createUniqueCriteria(key, ConfigKeyDB.ORM_PRIMARY_KEY_UNIQUE));
     }
 
     @Override

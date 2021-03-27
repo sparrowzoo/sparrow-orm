@@ -18,7 +18,7 @@
 package com.sparrow.orm;
 
 import com.sparrow.protocol.constant.CONSTANT;
-import com.sparrow.constant.SYS_OBJECT_NAME;
+import com.sparrow.constant.SysObjectName;
 import com.sparrow.protocol.constant.magic.SYMBOL;
 import com.sparrow.core.spi.ApplicationContext;
 import com.sparrow.datasource.ConnectionContextHolder;
@@ -92,7 +92,7 @@ public class JDBCTemplate implements JDBCSupport {
         }
         this.schema = schema;
         this.dataSourceSplitStrategy = databaseSplitStrategy;
-        this.connectionHolder = ApplicationContext.getContainer().getBean(SYS_OBJECT_NAME.CONNECTION_CONTEXT_HOLDER);
+        this.connectionHolder = ApplicationContext.getContainer().getBean(SysObjectName.CONNECTION_CONTEXT_HOLDER);
     }
 
     /************************************* 执行基础SQL调用 参数与存储过程 ***************************************************/

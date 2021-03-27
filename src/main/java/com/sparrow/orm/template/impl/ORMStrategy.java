@@ -17,8 +17,7 @@
 
 package com.sparrow.orm.template.impl;
 
-import com.sparrow.enums.DIALECT;
-import com.sparrow.orm.Dialect;
+import com.sparrow.enums.Dialect;
 import com.sparrow.orm.query.SearchCriteria;
 import com.sparrow.orm.query.UpdateCriteria;
 import com.sparrow.orm.template.SparrowDaoSupport;
@@ -49,7 +48,7 @@ public class ORMStrategy<T, I> implements SparrowDaoSupport<T, I> {
     }
 
     public ORMStrategy(String schema) {
-        DIALECT dialect = Dialect.getInstance(schema).getDialect();
+        Dialect dialect = com.sparrow.orm.Dialect.getInstance(schema).getDialect();
         Class clazz = null;
         Type type = getClass()
                 .getGenericSuperclass();
